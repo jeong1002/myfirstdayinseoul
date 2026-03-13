@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seoul 101 — Experience Seoul Like a Local</title>
+
+<!-- === FONTS: Nunito — warm, rounded, friendly (matches myfirstdayinseoul vibe) === -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* =============================================
+   THEME — myfirstdayinseoul brand system
+   Edit CSS variables below to change the look
+   ============================================= */
+:root {
+  --orange:       #FF6B35;
+  --orange-deep:  #E85A24;
+  --orange-light: #FFF7ED;
+  --orange-mid:   #FFEDD5;
+  --purple:       #7C3AED;
+  --text-dark:    #111827;
+  --text-mid:     #4B5563;
+  --text-light:   #9CA3AF;
+  --white:        #FFFFFF;
+  --bg-dark:      #1a2332;
+  --grad-orange:  linear-gradient(135deg, #FF6B35 0%, #FF8C42 50%, #FFAA55 100%);
+  --grad-warm:    linear-gradient(135deg, #FF6B35, #E85A24);
+  --ease-spring:  cubic-bezier(0.16, 1, 0.3, 1);
+  --font:         'Nunito', sans-serif;
+
+  /* Responsive type — all clamp() for viewport fitting */
+  --small-size:   clamp(0.6rem, 1vw, 0.8rem);
+  --slide-pad:    clamp(1rem, 4vw, 3.5rem);
+}
+
+/* =============================================
+   RESET + VIEWPORT BASE (mandatory)
+   ============================================= */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+  font-family: var(--font);
+  background: var(--white);
+}
+
+html {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+
+/* =============================================
+   PROGRESS BAR — orange gradient, fixed top
+   ============================================= */
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+  background: var(--grad-orange);
+  z-index: 9000;
+  transition: width 0.35s ease;
+  border-radius: 0 2px 2px 0;
+}
+
+/* =============================================
+   NAV DOTS — vertical, fixed right side
+   ============================================= */
+.nav-dots {
+  position: fixed; right: clamp(10px, 1.8vw, 22px); top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column;
+  gap: clamp(5px, 0.7vh, 9px);
+  z-index: 9000; list-style: none;
+}
+.nav-dot {
+  width: clamp(7px, 0.75vw, 10px); height: clamp(7px, 0.75vw, 10px);
+  border-radius: 50%; background: rgba(255, 107, 53, 0.2);
+  cursor: pointer; border: none;
+  transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+.nav-dot.active {
+  background: var(--orange);
+  transform: scale(1.35);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+}
+.nav-dot:hover { background: var(--orange); transform: scale(1.2); }
+
+/* =============================================
+   KEYBOARD HINT — fades out after 5s
+   ============================================= */
+.keyboard-hint {
+  position: fixed; bottom: clamp(10px, 1.8vh, 20px); left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--small-size); color: var(--text-light);
+  background: rgba(255,255,255,0.92); padding: 5px 14px;
+  border-radius: 999px; z-index: 8000; pointer-events: none;
+  animation: hintFade 4s 1.5s forwards;
+  opacity: 0; white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+@keyframes hintFade {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* =============================================
+   SLIDES — each exactly 100vh, no overflow
+   ============================================= */
+.slide {
+  width: 100vw;
+  height: 100vh; height: 100dvh; /* dvh for mobile browsers */
+  overflow: hidden;
+  scroll-snap-align: start;
+  display: flex; flex-direction: column;
+  position: relative;
+  background: var(--white);
+}
+
+/* Orange accent strip at top of every slide */
+.slide-header {
+  flex-shrink: 0;
+  height: clamp(3px, 0.45vh, 5px);
+  background: var(--grad-orange);
+}
+
+/* Image display area */
+.slide-body {
+  flex: 1; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  padding: clamp(0.3rem, 0.8vw, 1rem) clamp(0.5rem, 1.5vw, 1.5rem);
+  background: var(--white);
+  position: relative;
+}
+.slide-body img {
+  max-width: 100%; max-height: 100%;
+  width: auto; height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+}
+
+/* Slide footer: title label + counter */
+.slide-footer {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: clamp(0.35rem, 0.8vh, 0.7rem) clamp(1rem, 2.5vw, 2rem);
+  background: var(--white);
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+.slide-title-label {
+  font-size: var(--small-size); font-weight: 700;
+  color: var(--text-mid);
+  display: flex; align-items: center; gap: 7px;
+  flex: 1; min-width: 0; overflow: hidden;
+  white-space: nowrap; text-overflow: ellipsis;
+}
+.slide-title-label::before {
+  content: ''; display: inline-block;
+  width: 8px; height: 8px; flex-shrink: 0;
+  border-radius: 50%; background: var(--orange);
+}
+.slide-counter {
+  font-size: var(--small-size); font-weight: 800;
+  color: var(--text-light); letter-spacing: 0.05em; flex-shrink: 0;
+  margin-left: 1rem;
+}
+.slide-counter span { color: var(--orange); }
+
+/* Title slide: orange-tinted background */
+.slide-01 .slide-body { background: #FFF7ED; padding: 0; }
+.slide-01 .slide-body img { border-radius: 0; }
+
+/* Dark slides (restroom, beauty, nightlife) */
+.slide-dark { background: var(--bg-dark); }
+.slide-dark .slide-body { background: var(--bg-dark); }
+.slide-dark .slide-footer {
+  background: var(--bg-dark);
+  border-top-color: rgba(255,255,255,0.07);
+}
+.slide-dark .slide-title-label { color: rgba(255,255,255,0.65); }
+.slide-dark .slide-counter { color: rgba(255,255,255,0.25); }
+.slide-dark .slide-body img { border-radius: 8px; }
+
+/* =============================================
+   REVEAL ANIMATIONS — triggered by .visible
+   ============================================= */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.55s var(--ease-spring), transform 0.55s var(--ease-spring);
+}
+.slide.visible .reveal { opacity: 1; transform: translateY(0); }
+.slide.visible .reveal:nth-child(1) { transition-delay: 0.05s; }
+.slide.visible .reveal:nth-child(2) { transition-delay: 0.18s; }
+.slide.visible .reveal:nth-child(3) { transition-delay: 0.28s; }
+
+/* =============================================
+   INLINE EDIT UI
+   JS controls visibility — NOT CSS ~ selector
+   (CSS ~ breaks because pointer-events:none
+    interrupts the hover chain)
+   ============================================= */
+.edit-hotzone {
+  position: fixed; top: 0; left: 0;
+  width: 80px; height: 80px;
+  z-index: 10000; cursor: pointer;
+}
+.edit-toggle {
+  position: fixed; top: 14px; left: 14px;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--grad-warm); color: white;
+  border: none; cursor: pointer; z-index: 10001;
+  font-size: 15px;
+  box-shadow: 0 3px 12px rgba(255,107,53,0.4);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+  display: grid; place-items: center;
+}
+.edit-toggle:hover { transform: scale(1.1); }
+.edit-toggle.show, .edit-toggle.active {
+  opacity: 1; pointer-events: auto;
+}
+.edit-toggle.active {
+  background: linear-gradient(135deg, #7C3AED, #9F67FA);
+}
+
+.edit-banner {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: var(--grad-warm); color: white;
+  text-align: center;
+  font-size: var(--small-size); font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 7px; z-index: 8999;
+  transform: translateY(-100%);
+  transition: transform 0.3s var(--ease-spring);
+}
+.edit-banner.show { transform: translateY(0); }
+
+.edit-save-btn {
+  position: fixed; bottom: 22px; right: 60px;
+  background: var(--grad-warm); color: white;
+  border: none; cursor: pointer;
+  padding: clamp(7px, 1vh, 11px) clamp(14px, 1.8vw, 22px);
+  border-radius: 999px; font-family: var(--font);
+  font-size: var(--small-size); font-weight: 800;
+  box-shadow: 0 4px 16px rgba(255,107,53,0.4);
+  z-index: 10002; display: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.edit-save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(255,107,53,0.5);
+}
+.edit-mode .edit-save-btn { display: block; }
+
+/* Editable text focus ring */
+[contenteditable="true"] { outline: none; }
+[contenteditable="true"]:focus {
+  background: var(--orange-mid);
+  border-radius: 3px; padding: 1px 5px;
+  outline: 2px solid var(--orange);
+}
+/* Allow wrapping when editing */
+.edit-mode .slide-title-label {
+  white-space: normal; overflow: visible;
+}
+
+/* =============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================= */
+@media (max-height: 700px) {
+  .slide-footer { padding: 3px clamp(0.8rem, 2vw, 1.5rem); }
+}
+@media (max-height: 600px) {
+  .nav-dots, .keyboard-hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.2s !important;
+  }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- === ORANGE PROGRESS BAR (top) === -->
+<div class="progress-bar" id="progressBar" role="progressbar" aria-label="Presentation progress"></div>
+
+<!-- === NAV DOTS (right side, generated by JS) === -->
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- === KEYBOARD HINT (fades out) === -->
+<div class="keyboard-hint" aria-hidden="true">↑ ↓ arrow keys · Space · scroll to navigate</div>
+
+<!-- === EDIT UI === -->
+<div class="edit-hotzone" id="editHotzone" aria-hidden="true"></div>
+<button class="edit-toggle" id="editToggle" title="Toggle edit mode (press E)" aria-label="Toggle edit mode">✏️</button>
+<div class="edit-banner" id="editBanner">✏️ Edit Mode — Click any slide title below to edit · Ctrl+S to save</div>
+<button class="edit-save-btn" id="editSaveBtn">💾 Save HTML</button>
+
+<!-- ============================================================
+     SLIDES (17 total)
+     Structure: .slide-header (accent strip) + .slide-body (image) + .slide-footer (title + counter)
+     data-index: used by IntersectionObserver to track current slide
+     data-editable: marks elements the editor makes contenteditable
+     ============================================================ -->
+
+<!-- 01: Title -->
+<section class="slide slide-01" data-index="0">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-01.png" alt="Seoul 101 — Experience Seoul Like a Local, The Workshop Guide" loading="eager">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>Seoul 101: Experience Seoul Like a Local</span>
+    <span class="slide-counter"><span>01</span> / 17</span>
+  </div>
+</section>
+
+<!-- 02: Coffee Culture -->
+<section class="slide" data-index="1">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-02.png" alt="Morning Fuel: The Ice Americano Culture and How to Order at a Kiosk" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>☕ Morning Fuel: The 'Ice Americano' Culture</span>
+    <span class="slide-counter"><span>02</span> / 17</span>
+  </div>
+</section>
+
+<!-- 03: Subway & Bus -->
+<section class="slide" data-index="2">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-03.png" alt="Master the Commute: Subway and Bus guide" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>🚇 Master the Commute: Subway &amp; Bus</span>
+    <span class="slide-counter"><span>03</span> / 17</span>
+  </div>
+</section>
+
+<!-- 04: Explore Districts Part 1 -->
+<section class="slide" data-index="3">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-04.png" alt="Explore Like a Local Part 1: Myeongdong, Seongsu-dong, Hongdae" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>🗺️ Explore Like a Local Pt. 1 — Shop, Sip, Snap &amp; Savor</span>
+    <span class="slide-counter"><span>04</span> / 17</span>
+  </div>
+</section>
+
+<!-- 05: Explore Districts Part 2 -->
+<section class="slide" data-index="4">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-05.png" alt="Explore Like a Local Part 2: Anguk, Gangnam and Sinsa" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>🏯 Explore Like a Local Pt. 2 — Tradition &amp; Glamour</span>
+    <span class="slide-counter"><span>05</span> / 17</span>
+  </div>
+</section>
+
+<!-- 06: Food Guide -->
+<section class="slide" data-index="5">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-06.png" alt="A Taste of Seoul: Lunch, Snacks and Sweets" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>🍜 A Taste of Seoul: Lunch, Snacks &amp; Sweets</span>
+    <span class="slide-counter"><span>06</span> / 17</span>
+  </div>
+</section>
+
+<!-- 07: Restroom Hack (dark) -->
+<section class="slide slide-dark" data-index="6">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-07.png" alt="Restroom Hack: subway stations are safest" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>🚻 Restroom Hack</span>
+    <span class="slide-counter"><span>07</span> / 17</span>
+  </div>
+</section>
+
+<!-- 08: Shopping Level 1 -->
+<section class="slide" data-index="7">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-08.png" alt="Shopping Strategy Level 1: Duty-Free at Lotte Myeongdong" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>🛍️ Shopping Strategy Level 1 — Duty-Free @ Lotte</span>
+    <span class="slide-counter"><span>08</span> / 17</span>
+  </div>
+</section>
+
+<!-- 09: Shopping Levels 2 & 3 -->
+<section class="slide" data-index="8">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-09.png" alt="Shopping Strategy Levels 2 and 3: Trendy and Vintage Hunter" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>👗 Shopping Strategy Levels 2 &amp; 3 — Trendy + Vintage</span>
+    <span class="slide-counter"><span>09</span> / 17</span>
+  </div>
+</section>
+
+<!-- 10: Shopping Toolkit -->
+<section class="slide" data-index="9">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-10.png" alt="Shopping Toolkit: Korean phrases and Olive Young Survival Guide" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>💬 Shopping Toolkit: Phrases &amp; Olive Young Guide</span>
+    <span class="slide-counter"><span>10</span> / 17</span>
+  </div>
+</section>
+
+<!-- 11: Beauty & Care (dark) -->
+<section class="slide slide-dark" data-index="10">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-11.png" alt="The Glow Up: Beauty and Care, VewVew app recommendation" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>✨ The Glow Up: Beauty &amp; Care</span>
+    <span class="slide-counter"><span>11</span> / 17</span>
+  </div>
+</section>
+
+<!-- 12: Taxi Guide -->
+<section class="slide" data-index="11">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-12.png" alt="Getting Around: Taxi Guide — vacant and occupied lights, key phrases" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>🚕 Getting Around: Taxi Guide</span>
+    <span class="slide-counter"><span>12</span> / 17</span>
+  </div>
+</section>
+
+<!-- 13: Korean BBQ -->
+<section class="slide" data-index="12">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-13.png" alt="Dinner Time: Korean BBQ — The Holy Grail, menu decoder and ordering formula" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>🥩 Dinner Time: Korean BBQ — The Holy Grail</span>
+    <span class="slide-counter"><span>13</span> / 17</span>
+  </div>
+</section>
+
+<!-- 14: After Dark (dark) -->
+<section class="slide slide-dark" data-index="13">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-14.png" alt="Seoul After Dark: Nightlife and Street Food Po-cha" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>🌙 Seoul After Dark: Nightlife &amp; Street Food</span>
+    <span class="slide-counter"><span>14</span> / 17</span>
+  </div>
+</section>
+
+<!-- 15: CVS Life & Hangang -->
+<section class="slide" data-index="14">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-15.png" alt="The CVS Life and Hangang Parks: GS25 hacks, Hangang ramen, key phrases" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>🏪 The CVS Life &amp; Hangang Parks</span>
+    <span class="slide-counter"><span>15</span> / 17</span>
+  </div>
+</section>
+
+<!-- 16: Recovery & Warnings -->
+<section class="slide" data-index="15">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-16.png" alt="Recovery and Important Warnings: biking, jjimjilbang, cults, rules, privacy, alerts" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>⚠️ Recovery &amp; Important Warnings</span>
+    <span class="slide-counter"><span>16</span> / 17</span>
+  </div>
+</section>
+
+<!-- 17: Missions -->
+<section class="slide" data-index="16">
+  <div class="slide-header"></div>
+  <div class="slide-body reveal">
+    <img src="./Seoul-101-assets/slide-17.png" alt="Your Missions: Challenge Accepted — Olive Young, CVS Lunch, Temple, Debrief" loading="lazy">
+  </div>
+  <div class="slide-footer reveal">
+    <span class="slide-title-label" data-editable>🎯 Your Missions: Challenge Accepted!</span>
+    <span class="slide-counter"><span>17</span> / 17</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     JAVASCRIPT
+     SlidePresentation: keyboard, wheel, touch, progress, nav dots
+     InlineEditor: contenteditable, localStorage, export
+     ============================================================ -->
+<script>
+/* =============================================
+   SLIDE PRESENTATION CONTROLLER
+   ============================================= */
+class SlidePresentation {
+  constructor() {
+    this.slides      = Array.from(document.querySelectorAll('.slide'));
+    this.total       = this.slides.length;
+    this.current     = 0;
+    this.progressBar = document.getElementById('progressBar');
+    this.navDotsEl   = document.getElementById('navDots');
+
+    this.buildNavDots();
+    this.setupIntersectionObserver();
+    this.setupKeyboard();
+    this.setupWheel();
+    this.setupTouch();
+    this.update(0);
+  }
+
+  buildNavDots() {
+    this.slides.forEach((_, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'nav-dot' + (i === 0 ? ' active' : '');
+      btn.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+      btn.addEventListener('click', () => this.goTo(i));
+      this.navDotsEl.appendChild(btn);
+    });
+    this.dots = Array.from(this.navDotsEl.querySelectorAll('.nav-dot'));
+  }
+
+  /* IntersectionObserver — adds .visible for reveal animations */
+  setupIntersectionObserver() {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          const idx = parseInt(entry.target.dataset.index);
+          this.current = idx;
+          this.update(idx);
+        }
+      });
+    }, { threshold: 0.55 });
+    this.slides.forEach(s => io.observe(s));
+  }
+
+  /* Keyboard: arrows, space, page keys, home/end */
+  setupKeyboard() {
+    document.addEventListener('keydown', e => {
+      if (e.target.getAttribute('contenteditable')) return;
+      if (['ArrowDown', 'ArrowRight', ' ', 'PageDown'].includes(e.key)) {
+        e.preventDefault(); this.next();
+      } else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) {
+        e.preventDefault(); this.prev();
+      } else if (e.key === 'Home') {
+        e.preventDefault(); this.goTo(0);
+      } else if (e.key === 'End') {
+        e.preventDefault(); this.goTo(this.total - 1);
+      }
+    });
+  }
+
+  /* Mouse wheel — debounced to one slide per scroll burst */
+  setupWheel() {
+    let wheelTimer;
+    document.addEventListener('wheel', e => {
+      e.preventDefault();
+      clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(() => {
+        if (e.deltaY > 0) this.next(); else this.prev();
+      }, 50);
+    }, { passive: false });
+  }
+
+  /* Touch / swipe support */
+  setupTouch() {
+    let startY, startX;
+    document.addEventListener('touchstart', e => {
+      startY = e.touches[0].clientY;
+      startX = e.touches[0].clientX;
+    }, { passive: true });
+    document.addEventListener('touchend', e => {
+      const dy = startY - e.changedTouches[0].clientY;
+      const dx = startX - e.changedTouches[0].clientX;
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 40) {
+        if (dy > 0) this.next(); else this.prev();
+      }
+    }, { passive: true });
+  }
+
+  goTo(idx) {
+    if (idx < 0 || idx >= this.total) return;
+    this.slides[idx].scrollIntoView({ behavior: 'smooth' });
+  }
+  next() { this.goTo(this.current + 1); }
+  prev() { this.goTo(this.current - 1); }
+
+  update(idx) {
+    /* Progress bar width */
+    const pct = this.total > 1 ? (idx / (this.total - 1)) * 100 : 100;
+    this.progressBar.style.width = pct + '%';
+    /* Active nav dot */
+    if (this.dots) {
+      this.dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    }
+  }
+}
+
+/* =============================================
+   INLINE EDITOR
+   Makes .slide-title-label elements editable,
+   auto-saves to localStorage, exports full HTML
+   ============================================= */
+class InlineEditor {
+  constructor() {
+    this.isActive   = false;
+    this.storageKey = 'seoul101-captions';
+    this.editables  = Array.from(document.querySelectorAll('[data-editable]'));
+    this.toggleBtn  = document.getElementById('editToggle');
+    this.banner     = document.getElementById('editBanner');
+    this.saveBtn    = document.getElementById('editSaveBtn');
+
+    this.loadSaved();
+    this.setupHotzone();
+    this.setupKeyShortcut();
+    this.saveBtn.addEventListener('click', () => this.saveFile());
+  }
+
+  toggleEditMode() {
+    this.isActive = !this.isActive;
+    document.body.classList.toggle('edit-mode', this.isActive);
+    this.toggleBtn.classList.toggle('active', this.isActive);
+    this.banner.classList.toggle('show', this.isActive);
+    this.toggleBtn.textContent = this.isActive ? '✅' : '✏️';
+    this.toggleBtn.title = this.isActive ? 'Exit edit mode (E)' : 'Edit slide titles (E)';
+
+    this.editables.forEach(el => {
+      el.contentEditable = this.isActive ? 'true' : 'false';
+    });
+
+    if (this.isActive) {
+      /* Listen for edits and auto-save */
+      this.editables.forEach(el => {
+        el.addEventListener('input', () => this.autoSave());
+      });
+    }
+  }
+
+  autoSave() {
+    const data = {};
+    this.editables.forEach((el, i) => { data[i] = el.innerHTML; });
+    try { localStorage.setItem(this.storageKey, JSON.stringify(data)); } catch(e) {}
+  }
+
+  loadSaved() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
+      this.editables.forEach((el, i) => {
+        if (saved[i] !== undefined) el.innerHTML = saved[i];
+      });
+    } catch(e) {}
+  }
+
+  saveFile() {
+    /* Export the current DOM as a downloadable HTML file */
+    const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    const blob = new Blob([html], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Seoul-101-edited.html';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  setupHotzone() {
+    /* JS-based hover with 400ms grace period so the button
+       stays visible as the mouse moves from hotzone to button */
+    const hotzone = document.getElementById('editHotzone');
+    const toggle  = document.getElementById('editToggle');
+    let hideTimer;
+
+    const show = () => { clearTimeout(hideTimer); toggle.classList.add('show'); };
+    const hide = () => {
+      hideTimer = setTimeout(() => {
+        if (!this.isActive) toggle.classList.remove('show');
+      }, 400);
+    };
+
+    hotzone.addEventListener('mouseenter', show);
+    hotzone.addEventListener('mouseleave', hide);
+    hotzone.addEventListener('click', () => this.toggleEditMode());
+    toggle.addEventListener('mouseenter', show);
+    toggle.addEventListener('mouseleave', hide);
+  }
+
+  setupKeyShortcut() {
+    document.addEventListener('keydown', e => {
+      /* E key toggles edit mode (skip when user is typing in an editable field) */
+      if ((e.key === 'e' || e.key === 'E') && !e.target.getAttribute('contenteditable')) {
+        this.toggleEditMode();
+      }
+      /* Ctrl+S saves file when in edit mode */
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        if (this.isActive) this.saveFile();
+      }
+    });
+  }
+}
+
+/* =============================================
+   BOOT
+   ============================================= */
+const presentation = new SlidePresentation();
+const editor       = new InlineEditor();
+</script>
+</body>
+</html>

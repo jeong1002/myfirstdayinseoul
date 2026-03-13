@@ -1,0 +1,3078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seoul 101: Experience Seoul Like a Local</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ===== VIEWPORT BASE CSS ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #111827;
+  color: #111827;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* ===== THEME VARIABLES ===== */
+:root {
+  --orange: #FF6B35;
+  --orange-deep: #E85A24;
+  --orange-grad: linear-gradient(135deg, #FF6B35, #FF8C42);
+  --orange-light: #FFF7ED;
+  --orange-mid: #FFEDD5;
+  --purple: #7C3AED;
+  --purple-light: #F5F3FF;
+  --blue-light: #EFF6FF;
+  --green-light: #F0FDF4;
+  --text-dark: #111827;
+  --text-mid: #4B5563;
+  --text-light: #9CA3AF;
+  --navy: #0f2137;
+  --radius: 12px;
+  --radius-pill: 999px;
+}
+
+/* ===== SLIDE BASE ===== */
+.slide {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== PROGRESS BAR ===== */
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 4px;
+  background: var(--orange-grad);
+  z-index: 9999;
+  transition: width 0.4s ease;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ===== NAV DOTS ===== */
+#nav-dots {
+  position: fixed;
+  right: clamp(8px, 1.5vw, 18px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px, 0.8vh, 9px);
+  z-index: 9998;
+}
+
+.nav-dot {
+  width: clamp(7px, 0.8vw, 10px);
+  height: clamp(7px, 0.8vw, 10px);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.35);
+  border: 1.5px solid rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-dot.active {
+  background: var(--orange);
+  border-color: var(--orange);
+  transform: scale(1.3);
+}
+
+/* ===== KEYBOARD HINT ===== */
+#kb-hint {
+  position: fixed;
+  bottom: clamp(14px, 2vh, 24px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  padding: clamp(6px,0.8vh,10px) clamp(14px,2vw,22px);
+  border-radius: var(--radius-pill);
+  font-size: clamp(11px, 1.1vw, 13px);
+  font-weight: 600;
+  z-index: 9997;
+  transition: opacity 1s ease;
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+}
+#kb-hint.hidden { opacity: 0; pointer-events: none; }
+
+/* ===== EDIT HOTZONE ===== */
+.edit-hotzone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 80px;
+  height: 80px;
+  z-index: 10000;
+}
+
+.edit-toggle {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--orange-grad);
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 12px rgba(255,107,53,0.4);
+}
+
+.edit-toggle.show { opacity: 1; }
+.edit-toggle.active { background: linear-gradient(135deg, #7C3AED, #9F67FA); }
+.edit-toggle:hover { transform: scale(1.1); }
+
+[contenteditable="true"] {
+  outline: 2px dashed var(--orange);
+  border-radius: 4px;
+  cursor: text;
+  min-width: 20px;
+}
+
+/* ===== REVEAL ANIMATION ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== UTILITY ===== */
+.badge {
+  display: inline-block;
+  padding: clamp(2px,0.4vh,4px) clamp(8px,1vw,14px);
+  border-radius: var(--radius-pill);
+  font-size: clamp(10px, 1vw, 12px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.badge-orange { background: var(--orange-mid); color: var(--orange-deep); }
+.badge-purple { background: var(--purple-light); color: var(--purple); }
+.badge-green { background: var(--green-light); color: #16a34a; }
+.badge-blue { background: var(--blue-light); color: #1d4ed8; }
+
+.card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(8px,1.2vh,16px) clamp(10px,1.2vw,16px);
+  border: 1px solid #f0e8e0;
+}
+
+.card-dark {
+  background: rgba(255,255,255,0.07);
+  border-radius: var(--radius);
+  padding: clamp(8px,1.2vh,16px) clamp(10px,1.2vw,16px);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* ===== SLIDE 1 — TITLE ===== */
+#slide-1 {
+  background: var(--orange-light);
+  flex-direction: row;
+}
+
+.s1-left {
+  width: 55%;
+  background: var(--orange-grad);
+  padding: clamp(24px,4vh,48px) clamp(20px,3vw,44px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.s1-left::before {
+  content: '서울';
+  position: absolute;
+  bottom: -30px;
+  right: -20px;
+  font-size: clamp(80px,12vw,160px);
+  font-weight: 900;
+  color: rgba(255,255,255,0.08);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.s1-right {
+  width: 45%;
+  background: #fff;
+  padding: clamp(16px,3vh,36px) clamp(16px,2.5vw,36px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(10px,1.5vh,18px);
+}
+
+.s1-logo {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  margin-bottom: clamp(4px,0.6vh,8px);
+}
+
+.s1-title {
+  font-size: clamp(20px,3vw,42px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.15;
+  margin-bottom: clamp(4px,0.6vh,8px);
+}
+
+.s1-subtitle {
+  font-size: clamp(12px,1.4vw,18px);
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.15);
+  display: inline-block;
+  padding: clamp(3px,0.5vh,6px) clamp(10px,1.2vw,16px);
+  border-radius: var(--radius-pill);
+  margin-bottom: clamp(6px,1vh,14px);
+}
+
+.s1-welcome {
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.5;
+  margin-bottom: clamp(8px,1.2vh,16px);
+  padding: clamp(8px,1vh,14px);
+  background: rgba(255,255,255,0.13);
+  border-radius: var(--radius);
+  border-left: 3px solid rgba(255,255,255,0.5);
+}
+
+.s1-agenda {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px,0.6vh,8px);
+}
+
+.s1-agenda li {
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 700;
+  color: rgba(255,255,255,0.92);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.s1-agenda li::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: rgba(255,255,255,0.7);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.s1-section-title {
+  font-size: clamp(11px,1.1vw,13px);
+  font-weight: 800;
+  color: var(--orange-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: clamp(4px,0.5vh,8px);
+}
+
+.s1-ice-box {
+  background: var(--orange-mid);
+  border-radius: var(--radius);
+  padding: clamp(8px,1vh,14px) clamp(10px,1.2vw,16px);
+  border: 2px dashed var(--orange);
+}
+
+.s1-ice-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3px,0.4vh,6px);
+  margin-top: clamp(4px,0.5vh,6px);
+}
+
+.s1-ice-list li {
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 600;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.s1-ice-list li::before { content: '👋'; font-size: clamp(11px,1vw,13px); }
+
+.s1-tips {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px,0.5vh,8px);
+}
+
+.s1-tip {
+  background: var(--green-light);
+  border-radius: var(--radius);
+  padding: clamp(6px,0.8vh,10px) clamp(10px,1.2vw,14px);
+  font-size: clamp(10px,1vw,12px);
+  font-weight: 600;
+  color: #15803d;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* ===== SLIDE 2 — ICE AMERICANO ===== */
+#slide-2 {
+  background: var(--orange-light);
+  padding: clamp(16px,2.5vh,36px) clamp(20px,3vw,48px);
+  gap: clamp(10px,1.5vh,18px);
+}
+
+.s2-header {
+  text-align: center;
+}
+
+.slide-title {
+  font-size: clamp(16px,2.2vw,30px);
+  font-weight: 900;
+  color: var(--text-dark);
+  line-height: 1.2;
+}
+
+.slide-title-dark {
+  font-size: clamp(16px,2.2vw,30px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.s2-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(10px,1.5vw,20px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s2-col {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(10px,1.5vh,20px) clamp(12px,1.5vw,20px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px,0.8vh,12px);
+  overflow: hidden;
+}
+
+.col-header {
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 800;
+  color: var(--orange-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: clamp(4px,0.5vh,8px);
+  border-bottom: 2px solid var(--orange-mid);
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3px,0.4vh,6px);
+}
+
+.info-item {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  line-height: 1.4;
+}
+
+.info-label {
+  font-weight: 800;
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.step-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px,0.5vh,8px);
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.4;
+}
+
+.step-num {
+  width: clamp(18px,1.8vw,24px);
+  height: clamp(18px,1.8vw,24px);
+  min-width: clamp(18px,1.8vw,24px);
+  background: var(--orange-grad);
+  color: #fff;
+  border-radius: 50%;
+  font-size: clamp(9px,0.9vw,11px);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phrases-bar {
+  background: var(--navy);
+  border-radius: var(--radius);
+  padding: clamp(8px,1vh,14px) clamp(12px,1.5vw,20px);
+  display: flex;
+  gap: clamp(10px,2vw,24px);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.phrase-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.phrase-en {
+  font-size: clamp(9px,0.9vw,11px);
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.phrase-kr {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 700;
+  color: var(--orange);
+}
+
+/* ===== SLIDE 3 — COMMUTE ===== */
+#slide-3 {
+  background: var(--blue-light);
+  padding: clamp(16px,2.5vh,36px) clamp(20px,3vw,48px);
+  gap: clamp(10px,1.5vh,18px);
+}
+
+.s3-app-banner {
+  background: var(--navy);
+  border-radius: var(--radius);
+  padding: clamp(8px,1vh,12px) clamp(14px,1.5vw,20px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 700;
+  color: #fff;
+}
+
+.s3-app-banner span { color: var(--orange); }
+
+.s3-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: clamp(10px,1.2vw,18px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s3-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(10px,1.5vh,18px) clamp(10px,1.2vw,16px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px,0.8vh,10px);
+  overflow: hidden;
+}
+
+.s3-card-icon {
+  font-size: clamp(22px,2.5vw,34px);
+}
+
+.s3-card-title {
+  font-size: clamp(13px,1.4vw,18px);
+  font-weight: 900;
+  color: var(--text-dark);
+  line-height: 1.2;
+}
+
+.s3-card-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px,0.5vh,8px);
+}
+
+.s3-card-items li {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.s3-card-items li::before {
+  content: '→';
+  color: var(--orange);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.s3-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: clamp(8px,1vw,14px);
+}
+
+.s3-footer-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(8px,1vh,12px) clamp(10px,1.2vw,14px);
+  border-top: 3px solid var(--orange);
+}
+
+.s3-footer-title {
+  font-size: clamp(9px,0.9vw,12px);
+  font-weight: 800;
+  color: var(--orange-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.s3-footer-text {
+  font-size: clamp(10px,1vw,12px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.4;
+}
+
+/* ===== SLIDE 4 — EXPLORE PT 1 ===== */
+#slide-4 {
+  background: #fff;
+  padding: clamp(14px,2vh,28px) clamp(18px,2.5vw,40px);
+  gap: clamp(8px,1.2vh,16px);
+}
+
+.s4-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: clamp(10px,1.2vw,18px);
+  flex: 1;
+  min-height: 0;
+}
+
+.district-card {
+  border-radius: var(--radius);
+  padding: clamp(10px,1.4vh,18px) clamp(10px,1.2vw,16px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px,0.7vh,10px);
+  overflow: hidden;
+  position: relative;
+}
+
+.dc-myeong { background: linear-gradient(160deg, #fff7ed, #ffedd5); border: 1.5px solid #fed7aa; }
+.dc-seongsu { background: linear-gradient(160deg, #f0fdf4, #dcfce7); border: 1.5px solid #bbf7d0; }
+.dc-hongdae { background: linear-gradient(160deg, #eff6ff, #dbeafe); border: 1.5px solid #bfdbfe; }
+
+.district-name-kr {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 700;
+  color: var(--text-light);
+}
+
+.district-name-en {
+  font-size: clamp(14px,1.5vw,20px);
+  font-weight: 900;
+  color: var(--text-dark);
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+
+.district-vibe {
+  font-size: clamp(9px,0.9vw,11px);
+  font-weight: 700;
+  color: var(--orange-deep);
+  background: var(--orange-mid);
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.district-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3px,0.4vh,6px);
+  flex: 1;
+}
+
+.district-items li {
+  font-size: clamp(10px,1vw,12px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.35;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.district-skip {
+  font-size: clamp(9px,0.9vw,11px);
+  font-weight: 700;
+  color: #dc2626;
+  background: #fef2f2;
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  border: 1px solid #fecaca;
+}
+
+/* ===== SLIDE 5 — EXPLORE PT 2 ===== */
+#slide-5 {
+  background: var(--purple-light);
+  padding: clamp(14px,2vh,28px) clamp(18px,2.5vw,40px);
+  gap: clamp(8px,1.2vh,16px);
+}
+
+.s5-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(12px,1.5vw,22px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s5-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(12px,1.8vh,22px) clamp(14px,1.5vw,22px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px,0.8vh,12px);
+  overflow: hidden;
+}
+
+.s5-district-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-bottom: clamp(6px,0.8vh,10px);
+  border-bottom: 2px solid var(--orange-mid);
+}
+
+.s5-name-en {
+  font-size: clamp(14px,1.6vw,22px);
+  font-weight: 900;
+  color: var(--text-dark);
+}
+
+.s5-name-kr {
+  font-size: clamp(11px,1.1vw,15px);
+  font-weight: 700;
+  color: var(--text-light);
+}
+
+.s5-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px,0.5vh,8px);
+  flex: 1;
+}
+
+.s5-items li {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.s5-perk {
+  background: linear-gradient(135deg, var(--purple), #9F67FA);
+  border-radius: var(--radius);
+  padding: clamp(8px,1.2vh,14px) clamp(14px,1.5vw,22px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #fff;
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ===== SLIDE 6 — TASTE ===== */
+#slide-6 {
+  background: #fff;
+  padding: clamp(14px,2vh,28px) clamp(18px,2.5vw,40px);
+  gap: clamp(8px,1.2vh,16px);
+}
+
+.s6-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: clamp(8px,1vw,16px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s6-col {
+  border-radius: var(--radius);
+  padding: clamp(10px,1.4vh,18px) clamp(10px,1.2vw,16px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px,0.6vh,8px);
+  overflow: hidden;
+}
+
+.s6-col-1 { background: var(--orange-light); border: 1.5px solid #fed7aa; }
+.s6-col-2 { background: var(--green-light); border: 1.5px solid #bbf7d0; }
+.s6-col-3 { background: var(--blue-light); border: 1.5px solid #bfdbfe; }
+.s6-col-4 { background: var(--purple-light); border: 1.5px solid #ddd6fe; }
+
+.s6-col-icon { font-size: clamp(18px,2vw,28px); }
+
+.s6-col-title {
+  font-size: clamp(11px,1.2vw,15px);
+  font-weight: 900;
+  color: var(--text-dark);
+  line-height: 1.2;
+}
+
+.s6-col-sub {
+  font-size: clamp(9px,0.9vw,11px);
+  font-weight: 700;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.s6-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3px,0.4vh,6px);
+  flex: 1;
+}
+
+.s6-items li {
+  font-size: clamp(10px,1vw,12px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.35;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.s6-items li::before {
+  content: '•';
+  color: var(--orange);
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.s6-warning {
+  background: #fef2f2;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: clamp(9px,0.9vw,11px);
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.s6-ok {
+  background: var(--green-light);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: clamp(9px,0.9vw,11px);
+  font-weight: 700;
+  color: #15803d;
+}
+
+/* ===== SLIDE 7 — RESTROOM (DARK) ===== */
+#slide-7 {
+  background: var(--navy);
+  padding: clamp(20px,4vh,60px) clamp(30px,5vw,80px);
+  justify-content: center;
+  gap: clamp(16px,2.5vh,32px);
+}
+
+.s7-title {
+  font-size: clamp(28px,5vw,64px);
+  font-weight: 900;
+  color: #fff;
+  text-align: center;
+}
+
+.s7-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: clamp(14px,2vw,28px);
+}
+
+.s7-card {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius);
+  padding: clamp(16px,2.5vh,28px) clamp(16px,2vw,24px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px,1vh,14px);
+  align-items: center;
+  text-align: center;
+}
+
+.s7-card-icon { font-size: clamp(28px,3.5vw,50px); }
+
+.s7-card-label {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 800;
+  color: var(--orange);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.s7-card-text {
+  font-size: clamp(12px,1.3vw,17px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.s7-card-sub {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.4;
+}
+
+.s7-kr {
+  font-size: clamp(18px,2.5vw,32px);
+  font-weight: 900;
+  color: var(--orange);
+}
+
+/* ===== SLIDE 8 — SHOPPING L1 ===== */
+#slide-8 {
+  background: var(--orange-light);
+  padding: clamp(16px,2.5vh,36px) clamp(20px,3vw,48px);
+  gap: clamp(10px,1.5vh,20px);
+}
+
+.s8-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(16px,2vw,28px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s8-placeholder {
+  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px,1vh,14px);
+  position: relative;
+  overflow: hidden;
+}
+
+.s8-placeholder::before {
+  content: '🏬';
+  font-size: clamp(40px,6vw,80px);
+}
+
+.s8-store-label {
+  font-size: clamp(14px,1.6vw,20px);
+  font-weight: 900;
+  color: #fff;
+  text-align: center;
+  padding: 0 20px;
+  line-height: 1.3;
+}
+
+.s8-store-sub {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+}
+
+.s8-right {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px,1.5vh,18px);
+  justify-content: center;
+}
+
+.s8-stack {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px,1vh,14px);
+}
+
+.s8-strategy {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(10px,1.5vh,18px) clamp(12px,1.5vw,20px);
+  border-left: 4px solid var(--orange);
+}
+
+.s8-strat-level {
+  font-size: clamp(9px,0.9vw,11px);
+  font-weight: 800;
+  color: var(--orange);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.s8-strat-title {
+  font-size: clamp(13px,1.4vw,18px);
+  font-weight: 900;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.s8-strat-text {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.4;
+}
+
+/* ===== SLIDE 9 — SHOPPING L2&3 ===== */
+#slide-9 {
+  background: #fff;
+  padding: clamp(16px,2.5vh,36px) clamp(20px,3vw,48px);
+  gap: clamp(10px,1.5vh,20px);
+}
+
+.s9-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(16px,2vw,28px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s9-level {
+  border-radius: var(--radius);
+  padding: clamp(14px,2vh,24px) clamp(14px,1.8vw,22px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px,1vh,14px);
+  overflow: hidden;
+}
+
+.s9-l2 { background: linear-gradient(160deg, var(--blue-light), #dbeafe); border: 1.5px solid #bfdbfe; }
+.s9-l3 { background: linear-gradient(160deg, var(--green-light), #dcfce7); border: 1.5px solid #bbf7d0; }
+
+.s9-level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: clamp(3px,0.5vh,6px) clamp(10px,1.2vw,16px);
+  border-radius: var(--radius-pill);
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 800;
+}
+
+.s9-l2 .s9-level-badge { background: #1d4ed8; color: #fff; }
+.s9-l3 .s9-level-badge { background: #16a34a; color: #fff; }
+
+.s9-level-title {
+  font-size: clamp(16px,1.8vw,24px);
+  font-weight: 900;
+  color: var(--text-dark);
+  line-height: 1.2;
+}
+
+.s9-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px,0.6vh,9px);
+  flex: 1;
+}
+
+.s9-items li {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.s9-items li strong { color: var(--text-dark); }
+
+/* ===== SLIDE 10 — SHOPPING TOOLKIT ===== */
+#slide-10 {
+  background: var(--orange-light);
+  padding: clamp(16px,2.5vh,36px) clamp(20px,3vw,48px);
+  gap: clamp(10px,1.5vh,20px);
+}
+
+.s10-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(16px,2vw,28px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s10-col {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(14px,2vh,24px) clamp(14px,1.8vw,22px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px,1vh,14px);
+  overflow: hidden;
+}
+
+.s10-col-header {
+  font-size: clamp(13px,1.4vw,18px);
+  font-weight: 900;
+  color: var(--text-dark);
+  padding-bottom: clamp(6px,0.8vh,10px);
+  border-bottom: 2px solid var(--orange-mid);
+}
+
+.phrase-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: clamp(6px,0.7vh,10px) clamp(8px,1vw,12px);
+  background: var(--orange-light);
+  border-radius: 8px;
+  border-left: 3px solid var(--orange);
+}
+
+.phrase-row .phrase-en {
+  font-size: clamp(10px,1vw,12px);
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.phrase-row .phrase-kr {
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.phrase-row .phrase-rom {
+  font-size: clamp(10px,1vw,12px);
+  font-weight: 600;
+  color: var(--orange-deep);
+}
+
+.oy-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.oy-label {
+  font-size: clamp(9px,0.9vw,11px);
+  font-weight: 800;
+  color: var(--orange-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.oy-text {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.4;
+}
+
+/* ===== SLIDE 11 — GLOW UP (DARK) ===== */
+#slide-11 {
+  background: var(--navy);
+  padding: clamp(30px,6vh,80px) clamp(40px,8vw,120px);
+  justify-content: center;
+  align-items: center;
+  gap: clamp(20px,3vh,40px);
+}
+
+.s11-eyebrow {
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 800;
+  color: var(--orange);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+.s11-hero-title {
+  font-size: clamp(28px,5.5vw,72px);
+  font-weight: 900;
+  color: #fff;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.s11-rule {
+  background: rgba(255,107,53,0.12);
+  border: 2px solid rgba(255,107,53,0.3);
+  border-radius: var(--radius);
+  padding: clamp(14px,2vh,22px) clamp(20px,3vw,36px);
+  text-align: center;
+  max-width: 700px;
+}
+
+.s11-rule-label {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 800;
+  color: var(--orange);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: clamp(4px,0.5vh,8px);
+}
+
+.s11-rule-text {
+  font-size: clamp(14px,1.8vw,24px);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.s11-vewvew {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px,1.5vw,20px);
+  background: rgba(124,58,237,0.15);
+  border: 2px solid rgba(124,58,237,0.35);
+  border-radius: var(--radius);
+  padding: clamp(12px,1.8vh,22px) clamp(20px,3vw,36px);
+}
+
+.s11-vewvew-badge {
+  background: linear-gradient(135deg, var(--purple), #9F67FA);
+  color: #fff;
+  font-size: clamp(16px,2vw,26px);
+  font-weight: 900;
+  padding: clamp(6px,1vh,12px) clamp(14px,1.5vw,22px);
+  border-radius: var(--radius);
+}
+
+.s11-vewvew-text {
+  font-size: clamp(12px,1.3vw,17px);
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.4;
+}
+
+/* ===== SLIDE 12 — TAXI ===== */
+#slide-12 {
+  background: var(--blue-light);
+  padding: clamp(16px,2.5vh,36px) clamp(20px,3vw,48px);
+  gap: clamp(10px,1.5vh,20px);
+}
+
+.s12-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: clamp(12px,1.5vw,22px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s12-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(14px,2vh,24px) clamp(12px,1.5vw,20px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px,1vh,14px);
+  overflow: hidden;
+}
+
+.s12-card-icon { font-size: clamp(26px,3vw,40px); }
+
+.s12-card-title {
+  font-size: clamp(13px,1.4vw,18px);
+  font-weight: 900;
+  color: var(--text-dark);
+  border-bottom: 2px solid var(--orange-mid);
+  padding-bottom: clamp(4px,0.5vh,8px);
+}
+
+.s12-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px,0.8vh,12px);
+}
+
+.s12-items li {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.4;
+}
+
+.light-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: clamp(5px,0.6vh,8px) clamp(8px,1vw,12px);
+  border-radius: 8px;
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 700;
+}
+
+.light-green { background: var(--green-light); color: #15803d; }
+.light-red { background: #fef2f2; color: #dc2626; }
+
+/* ===== SLIDE 13 — BBQ ===== */
+#slide-13 {
+  background: #fff;
+  padding: clamp(14px,2vh,28px) clamp(18px,2.5vw,40px);
+  gap: clamp(8px,1.2vh,16px);
+}
+
+.s13-golden {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-radius: var(--radius);
+  padding: clamp(8px,1.2vh,14px) clamp(16px,2vw,28px);
+  text-align: center;
+  color: #fff;
+  font-size: clamp(12px,1.3vw,17px);
+  font-weight: 800;
+}
+
+.s13-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(14px,1.8vw,24px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s13-col {
+  background: var(--orange-light);
+  border-radius: var(--radius);
+  padding: clamp(12px,1.8vh,22px) clamp(14px,1.5vw,22px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px,1vh,14px);
+  overflow: hidden;
+}
+
+.s13-col-title {
+  font-size: clamp(13px,1.4vw,18px);
+  font-weight: 900;
+  color: var(--text-dark);
+  border-bottom: 2px solid var(--orange-mid);
+  padding-bottom: clamp(5px,0.6vh,8px);
+}
+
+.menu-row {
+  background: #fff;
+  border-radius: 8px;
+  padding: clamp(6px,0.8vh,10px) clamp(8px,1vw,14px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menu-en {
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.menu-kr {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--orange-deep);
+}
+
+.formula-box {
+  background: var(--navy);
+  border-radius: var(--radius);
+  padding: clamp(8px,1vh,14px) clamp(10px,1.2vw,16px);
+  color: #fff;
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 700;
+  text-align: center;
+}
+
+.formula-box span { color: var(--orange); }
+
+.bbq-phrase {
+  background: #fff;
+  border-radius: 8px;
+  padding: clamp(6px,0.8vh,10px) clamp(8px,1vw,14px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.bbq-phrase-en {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+}
+
+.bbq-phrase-kr {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 700;
+  color: var(--orange-deep);
+  text-align: right;
+}
+
+/* ===== SLIDE 14 — AFTER DARK (DARK) ===== */
+#slide-14 {
+  background: var(--navy);
+  padding: clamp(16px,2.5vh,36px) clamp(20px,3vw,48px);
+  gap: clamp(10px,1.5vh,20px);
+}
+
+.s14-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(14px,2vw,24px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s14-col {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  padding: clamp(14px,2vh,24px) clamp(14px,1.8vw,22px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px,1vh,14px);
+  overflow: hidden;
+}
+
+.s14-col-icon { font-size: clamp(24px,2.8vw,38px); }
+
+.s14-col-title {
+  font-size: clamp(14px,1.6vw,22px);
+  font-weight: 900;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  padding-bottom: clamp(5px,0.6vh,10px);
+}
+
+.s14-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px,0.8vh,12px);
+  flex: 1;
+}
+
+.s14-items li {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.s14-items li strong { color: var(--orange); }
+
+.s14-footer {
+  background: var(--orange-grad);
+  border-radius: var(--radius);
+  padding: clamp(10px,1.5vh,18px);
+  text-align: center;
+  font-size: clamp(14px,1.8vw,24px);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+/* ===== SLIDE 15 — CVS LIFE ===== */
+#slide-15 {
+  background: var(--green-light);
+  padding: clamp(16px,2.5vh,36px) clamp(20px,3vw,48px);
+  gap: clamp(10px,1.5vh,20px);
+}
+
+.s15-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: clamp(10px,1.2vw,18px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s15-col {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(12px,1.8vh,22px) clamp(12px,1.5vw,20px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px,0.8vh,12px);
+  overflow: hidden;
+}
+
+.s15-col-icon { font-size: clamp(22px,2.5vw,32px); }
+
+.s15-col-title {
+  font-size: clamp(13px,1.4vw,18px);
+  font-weight: 900;
+  color: var(--text-dark);
+  border-bottom: 2px solid var(--green-light);
+  padding-bottom: clamp(4px,0.5vh,8px);
+}
+
+.s15-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px,0.5vh,8px);
+  flex: 1;
+}
+
+.s15-items li {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.s15-step {
+  background: var(--green-light);
+  border-radius: 8px;
+  padding: clamp(5px,0.6vh,8px) clamp(8px,1vw,12px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 700;
+  color: #15803d;
+}
+
+.s15-step-num {
+  width: clamp(18px,1.8vw,24px);
+  height: clamp(18px,1.8vw,24px);
+  min-width: clamp(18px,1.8vw,24px);
+  background: #16a34a;
+  color: #fff;
+  border-radius: 50%;
+  font-size: clamp(9px,0.9vw,11px);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== SLIDE 16 — RECOVERY ===== */
+#slide-16 {
+  background: #fff;
+  padding: clamp(14px,2vh,28px) clamp(18px,2.5vw,40px);
+  gap: clamp(8px,1.2vh,16px);
+}
+
+.s16-top {
+  background: var(--blue-light);
+  border-radius: var(--radius);
+  padding: clamp(12px,1.8vh,22px) clamp(14px,2vw,24px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(10px,1.2vw,18px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s16-option {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(10px,1.4vh,18px) clamp(12px,1.4vw,18px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(5px,0.6vh,8px);
+}
+
+.s16-option-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 800;
+  color: var(--purple);
+  background: var(--purple-light);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  width: fit-content;
+}
+
+.s16-option-title {
+  font-size: clamp(13px,1.4vw,18px);
+  font-weight: 900;
+  color: var(--text-dark);
+}
+
+.s16-option-text {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.4;
+}
+
+.s16-warnings {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: clamp(8px,1vw,14px);
+}
+
+.s16-warn-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(8px,1.2vh,14px) clamp(8px,1vw,12px);
+  border: 1.5px solid #fee2e2;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px,0.5vh,6px);
+}
+
+.s16-warn-icon { font-size: clamp(18px,2vw,26px); }
+
+.s16-warn-title {
+  font-size: clamp(11px,1.1vw,14px);
+  font-weight: 800;
+  color: #dc2626;
+}
+
+.s16-warn-text {
+  font-size: clamp(9px,0.9vw,12px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.35;
+}
+
+/* ===== SLIDE 17 — MISSIONS ===== */
+#slide-17 {
+  background: var(--orange-light);
+  padding: clamp(14px,2vh,28px) clamp(18px,2.5vw,40px);
+  gap: clamp(8px,1.2vh,16px);
+}
+
+.s17-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(10px,1.2vw,18px);
+  flex: 1;
+  min-height: 0;
+}
+
+.s17-mission {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: clamp(12px,1.8vh,20px) clamp(12px,1.5vw,20px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px,0.7vh,10px);
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid var(--orange-mid);
+}
+
+.s17-mission::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--orange-grad);
+}
+
+.s17-mission-num {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 800;
+  color: var(--orange);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.s17-mission-title {
+  font-size: clamp(13px,1.4vw,18px);
+  font-weight: 900;
+  color: var(--text-dark);
+  line-height: 1.2;
+}
+
+.s17-mission-time {
+  font-size: clamp(10px,1vw,12px);
+  font-weight: 700;
+  color: var(--orange-deep);
+  background: var(--orange-mid);
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  width: fit-content;
+}
+
+.s17-mission-text {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 600;
+  color: var(--text-mid);
+  line-height: 1.4;
+}
+
+.s17-debrief {
+  background: var(--navy);
+  border-radius: var(--radius);
+  padding: clamp(10px,1.5vh,18px) clamp(16px,2vw,28px);
+  display: flex;
+  align-items: center;
+  gap: clamp(12px,1.5vw,24px);
+  flex-wrap: wrap;
+}
+
+.s17-debrief-label {
+  font-size: clamp(12px,1.3vw,17px);
+  font-weight: 900;
+  color: var(--orange);
+  white-space: nowrap;
+}
+
+.s17-debrief-qs {
+  display: flex;
+  gap: clamp(8px,1.2vw,18px);
+  flex-wrap: wrap;
+}
+
+.s17-debrief-q {
+  font-size: clamp(10px,1vw,13px);
+  font-weight: 700;
+  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.08);
+  padding: clamp(4px,0.5vh,7px) clamp(10px,1.2vw,16px);
+  border-radius: var(--radius-pill);
+}
+
+/* ===== SECTION HEADERS ===== */
+.slide-header {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px,1vw,14px);
+  flex-shrink: 0;
+}
+
+.slide-header-badge {
+  font-size: clamp(9px,0.9vw,11px);
+  font-weight: 800;
+  color: var(--orange);
+  background: var(--orange-mid);
+  padding: clamp(2px,0.3vh,4px) clamp(8px,1vw,14px);
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.s16-section-title {
+  font-size: clamp(13px,1.4vw,18px);
+  font-weight: 900;
+  color: var(--text-dark);
+  padding-bottom: clamp(5px,0.6vh,8px);
+  border-bottom: 2px solid var(--blue-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recovery-label {
+  font-size: clamp(11px,1.2vw,15px);
+  font-weight: 900;
+  color: #1d4ed8;
+  background: var(--blue-light);
+  padding: clamp(3px,0.4vh,5px) clamp(8px,1vw,14px);
+  border-radius: var(--radius-pill);
+}
+
+.warnings-header {
+  font-size: clamp(13px,1.4vw,17px);
+  font-weight: 900;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* =============================================
+   FONT + SPACING OVERRIDES
+   Larger text, tighter padding, less dead space
+   ============================================= */
+
+/* Slide titles — bigger */
+.slide-title, .slide-title-dark {
+  font-size: clamp(20px, 2.6vw, 36px) !important;
+}
+
+/* Reduce outer slide padding & gaps */
+#slide-2, #slide-3, #slide-4, #slide-5, #slide-6,
+#slide-8, #slide-9, #slide-10, #slide-12, #slide-13,
+#slide-15, #slide-16, #slide-17 {
+  padding: clamp(10px, 1.5vh, 20px) clamp(14px, 2vw, 32px) !important;
+  gap: clamp(6px, 0.9vh, 12px) !important;
+}
+#slide-7, #slide-11 {
+  padding: clamp(14px, 2.5vh, 40px) clamp(24px, 4vw, 64px) !important;
+  gap: clamp(12px, 2vh, 28px) !important;
+}
+#slide-14 {
+  padding: clamp(10px, 1.5vh, 20px) clamp(14px, 2vw, 32px) !important;
+  gap: clamp(6px, 0.9vh, 12px) !important;
+}
+
+/* Body / info text — bigger */
+.info-item, .step-item span,
+.s3-card-items li, .district-items li,
+.s5-items li, .s6-items li, .s9-items li,
+.s12-items li, .s14-items li, .s15-items li,
+.s16-recovery-text, .s16-option-text, .s16-warn-text,
+.s17-mission-text, .oy-text, .s3-footer-text {
+  font-size: clamp(13px, 1.35vw, 17px) !important;
+  line-height: 1.45 !important;
+}
+
+/* Card / section titles — bigger */
+.s3-card-title, .s6-col-title, .s9-level-title,
+.s12-card-title, .s13-col-title, .s14-col-title,
+.s15-col-title, .s16-option-title, .s17-mission-title {
+  font-size: clamp(15px, 1.7vw, 22px) !important;
+}
+.district-name-en, .s5-name-en {
+  font-size: clamp(17px, 2vw, 26px) !important;
+}
+.s10-col-header {
+  font-size: clamp(15px, 1.6vw, 20px) !important;
+}
+.s8-strat-title { font-size: clamp(14px, 1.5vw, 19px) !important; }
+.s8-strat-text  { font-size: clamp(12px, 1.3vw, 16px) !important; }
+
+/* Phrases — bigger */
+.phrase-kr, .bbq-phrase-en, .bbq-phrase-kr {
+  font-size: clamp(13px, 1.35vw, 17px) !important;
+}
+.phrase-en, .phrase-rom {
+  font-size: clamp(11px, 1.1vw, 14px) !important;
+}
+
+/* Step items */
+.step-item { font-size: clamp(13px, 1.35vw, 17px) !important; }
+.s15-step  { font-size: clamp(12px, 1.3vw, 16px) !important; }
+
+/* Tighten card internal padding & gaps */
+.s2-col, .s5-card, .s6-col, .s9-level,
+.s10-col, .s13-col, .s14-col, .s15-col {
+  padding: clamp(8px, 1.2vh, 14px) clamp(10px, 1.2vw, 16px) !important;
+  gap: clamp(5px, 0.7vh, 9px) !important;
+}
+.s3-card {
+  padding: clamp(10px, 1.4vh, 16px) clamp(10px, 1.2vw, 16px) !important;
+  gap: clamp(5px, 0.7vh, 9px) !important;
+}
+.s12-card {
+  padding: clamp(10px, 1.4vh, 16px) clamp(12px, 1.4vw, 18px) !important;
+  gap: clamp(6px, 0.8vh, 10px) !important;
+}
+.s8-strategy {
+  padding: clamp(8px, 1.2vh, 14px) clamp(10px, 1.2vw, 16px) !important;
+}
+.s8-right { gap: clamp(6px, 1vh, 12px) !important; }
+.s8-stack { gap: clamp(6px, 0.9vh, 10px) !important; }
+.s17-mission {
+  padding: clamp(10px, 1.4vh, 16px) clamp(10px, 1.3vw, 16px) !important;
+  gap: clamp(4px, 0.6vh, 8px) !important;
+}
+
+/* Tighten grid gaps */
+.s2-cols, .s3-grid, .s4-grid, .s5-grid, .s6-grid,
+.s8-layout, .s9-grid, .s10-grid, .s12-grid, .s13-grid,
+.s14-grid, .s15-grid, .s16-warnings, .s17-grid {
+  gap: clamp(8px, 1.2vw, 16px) !important;
+}
+.s3-footer { gap: clamp(6px, 0.9vw, 12px) !important; }
+.s3-footer-card {
+  padding: clamp(6px, 0.9vh, 10px) clamp(8px, 1vw, 13px) !important;
+}
+.s3-footer-text { font-size: clamp(11px, 1.1vw, 14px) !important; }
+
+/* Slide header gap */
+.slide-header { gap: clamp(6px, 0.8vw, 12px) !important; }
+
+/* Mission numbers */
+.s17-mission-num { font-size: clamp(11px, 1.1vw, 14px) !important; }
+
+/* Section badges */
+.slide-header-badge {
+  font-size: clamp(10px, 1vw, 13px) !important;
+  padding: clamp(3px,0.4vh,5px) clamp(8px,1vw,14px) !important;
+}
+
+/* Phrases bar */
+.phrases-bar {
+  padding: clamp(8px, 1.1vh, 13px) clamp(10px, 1.4vw, 18px) !important;
+  gap: clamp(8px, 1.5vw, 20px) !important;
+}
+.phrase-kr { font-size: clamp(12px, 1.2vw, 16px) !important; }
+
+/* App banner */
+.s3-app-banner {
+  font-size: clamp(13px, 1.4vw, 18px) !important;
+  padding: clamp(8px, 1.1vh, 13px) clamp(12px, 1.4vw, 18px) !important;
+}
+
+/* District vibe tags */
+.district-vibe { font-size: clamp(10px, 1vw, 13px) !important; }
+.district-skip { font-size: clamp(10px, 1vw, 13px) !important; }
+
+/* s1 title bigger */
+.s1-title { font-size: clamp(24px, 3.5vw, 50px) !important; }
+.s1-welcome { font-size: clamp(12px, 1.3vw, 16px) !important; }
+.s1-agenda li { font-size: clamp(13px, 1.3vw, 17px) !important; }
+.s1-ice-list li { font-size: clamp(13px, 1.3vw, 17px) !important; }
+.s1-tip { font-size: clamp(12px, 1.2vw, 15px) !important; }
+.s1-right { gap: clamp(8px, 1.2vh, 16px) !important; }
+.s1-left {
+  padding: clamp(20px, 3.5vh, 44px) clamp(20px, 3vw, 44px) !important;
+}
+
+/* Dark slide hero text */
+.s7-title  { font-size: clamp(32px, 6vw, 72px) !important; }
+.s7-card-text { font-size: clamp(14px, 1.6vw, 20px) !important; }
+.s7-card-sub  { font-size: clamp(12px, 1.2vw, 15px) !important; }
+.s7-kr { font-size: clamp(20px, 2.8vw, 36px) !important; }
+
+.s11-hero-title { font-size: clamp(30px, 6vw, 76px) !important; }
+.s11-rule-text  { font-size: clamp(15px, 2vw, 26px) !important; }
+.s11-vewvew-text { font-size: clamp(13px, 1.4vw, 18px) !important; }
+
+/* Golden rule banner */
+.s13-golden { font-size: clamp(13px, 1.5vw, 19px) !important; }
+
+/* After dark footer */
+.s14-footer { font-size: clamp(13px, 1.5vw, 19px) !important; }
+
+/* Warnings */
+.s16-warn-title { font-size: clamp(13px, 1.4vw, 17px) !important; }
+.s16-warn-card  { padding: clamp(8px,1.2vh,13px) clamp(8px,1vw,14px) !important; }
+
+/* Debrief */
+.s17-debrief-label { font-size: clamp(14px, 1.5vw, 19px) !important; }
+.s17-debrief-q     { font-size: clamp(12px, 1.2vw, 15px) !important; }
+
+/* ===== LAYOUT FILL: make content grids grow to fill slide height ===== */
+
+/* Dark slides: blurred radial orbs as background atmosphere */
+#slide-7::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 12% 88%, rgba(255,107,53,0.22) 0%, transparent 42%),
+    radial-gradient(ellipse at 88% 12%, rgba(0,210,190,0.14) 0%, transparent 42%),
+    radial-gradient(ellipse at 50% 50%, rgba(255,107,53,0.06) 0%, transparent 60%);
+}
+#slide-11::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 15% 20%, rgba(124,58,237,0.30) 0%, transparent 48%),
+    radial-gradient(ellipse at 85% 80%, rgba(255,107,53,0.18) 0%, transparent 48%),
+    radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.08) 0%, transparent 55%);
+}
+#slide-14::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 90% 8%, rgba(255,107,53,0.22) 0%, transparent 42%),
+    radial-gradient(ellipse at 8% 92%, rgba(0,150,220,0.14) 0%, transparent 42%),
+    radial-gradient(ellipse at 50% 50%, rgba(255,107,53,0.05) 0%, transparent 55%);
+}
+
+/* Ensure all content in dark slides renders above pseudo-element */
+#slide-7 > *, #slide-11 > *, #slide-14 > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Slide 7: grid fills remaining height; grid items (cards) auto-stretch */
+.s7-grid {
+  flex: 1 !important;
+  min-height: 0 !important;
+  align-items: stretch !important;
+}
+.s7-card {
+  justify-content: center !important;
+}
+
+/* Slide 11: spread content vertically */
+#slide-11 {
+  justify-content: space-evenly !important;
+}
+
+/* Slide 12: grid fills height, cards auto-stretch */
+.s12-grid {
+  align-items: stretch !important;
+}
+
+/* Slide 14: grid fills remaining height */
+.s14-grid {
+  flex: 1 !important;
+  min-height: 0 !important;
+  align-items: stretch !important;
+}
+
+/* General: main content grids on light slides fill height */
+.s3-grid, .s4-grid, .s6-grid {
+  flex: 1 !important;
+  min-height: 0 !important;
+  align-items: stretch !important;
+}
+.s5-grid {
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+
+/* s9, s10, s13, s15, s16 grids */
+.s9-grid, .s10-grid, .s13-grid, .s15-grid {
+  flex: 1 !important;
+  min-height: 0 !important;
+  align-items: stretch !important;
+}
+.s16-top {
+  flex-shrink: 0;
+}
+.s16-warnings {
+  flex: 1 !important;
+  min-height: 0 !important;
+  align-items: stretch !important;
+}
+.s17-grid {
+  flex: 1 !important;
+  min-height: 0 !important;
+  align-items: stretch !important;
+}
+
+/* s11 service pills */
+.s11-services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1vw, 14px);
+  justify-content: center;
+  max-width: 780px;
+}
+.s11-service-pill {
+  background: rgba(255,255,255,0.09);
+  border: 1.5px solid rgba(255,255,255,0.20);
+  border-radius: 999px;
+  padding: clamp(7px,1vh,12px) clamp(14px,1.8vw,24px);
+  font-size: clamp(12px,1.3vw,17px);
+  font-weight: 700;
+  color: rgba(255,255,255,0.88);
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div id="progress-bar"></div>
+
+<!-- NAV DOTS -->
+<nav id="nav-dots" aria-label="Slide navigation"></nav>
+
+<!-- KEYBOARD HINT -->
+<div id="kb-hint">↑ ↓ Arrow Keys &nbsp;|&nbsp; Scroll &nbsp;|&nbsp; E = Edit &nbsp;|&nbsp; Ctrl+S = Export</div>
+
+<!-- EDIT HOTZONE -->
+<div class="edit-hotzone" id="edit-hotzone"></div>
+<button class="edit-toggle" id="edit-toggle" title="Toggle Edit Mode">✏️</button>
+
+<!-- ===================== SLIDES ===================== -->
+
+<!-- SLIDE 1: TITLE -->
+<section class="slide" id="slide-1" data-index="0">
+  <div class="s1-left reveal">
+    <div class="s1-logo">myfirstdayinseoul.com</div>
+    <h1 class="s1-title" data-editable>Seoul 101:<br>Experience Seoul Like a Local</h1>
+    <div class="s1-subtitle">The Workshop Guide</div>
+    <div class="s1-welcome" data-editable>You could fall for tourist traps and visit overcrowded places — or spend these 3 hours learning to travel like a local.</div>
+    <div style="margin-top: clamp(6px,1vh,12px);">
+      <div style="font-size: clamp(9px,0.9vw,11px); font-weight:800; color:rgba(255,255,255,0.65); text-transform:uppercase; letter-spacing:0.06em; margin-bottom: clamp(4px,0.5vh,8px);">Today's Agenda</div>
+      <ul class="s1-agenda">
+        <li>Part 1: Local Insights & Real Recommendations</li>
+        <li>Part 2: The "Treasure Hunt" Missions</li>
+        <li>Part 3: Cafe Debrief</li>
+      </ul>
+    </div>
+  </div>
+  <div class="s1-right reveal">
+    <div>
+      <div class="s1-section-title">👋 Icebreakers</div>
+      <div class="s1-ice-box">
+        <ul class="s1-ice-list">
+          <li>Where are you from?</li>
+          <li>First time in Korea?</li>
+          <li>Any concerns?</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="s1-section-title">💡 Pro Tips</div>
+      <div class="s1-tips">
+        <div class="s1-tip">👟 <span>Wear comfortable shoes — Korea is nothing but hills.</span></div>
+        <div class="s1-tip">🗑️ <span>Carry a small trash bag. Public bins are incredibly rare.</span></div>
+      </div>
+    </div>
+    <div style="margin-top: auto; padding-top: clamp(6px,1vh,12px); border-top: 2px dashed #fed7aa;">
+      <div style="font-size: clamp(10px,1vw,13px); font-weight:700; color: var(--text-light); text-align:center;">3-Hour Workshop · Seoul, Korea 🇰🇷</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: ICE AMERICANO -->
+<section class="slide" id="slide-2" data-index="1">
+  <div class="s2-header reveal">
+    <h2 class="slide-title">Morning Fuel: The 'Ice Americano' Culture ☕</h2>
+  </div>
+  <div class="s2-cols reveal">
+    <div class="s2-col">
+      <div class="col-header">Cultural Context</div>
+      <div class="info-row">
+        <div class="info-item">
+          <span class="info-label">🧊 'Eoljuk-a':</span>
+          <span>"Even if I freeze to death, I will drink Iced Americano."</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">☕ Local Chains:</span>
+          <span>Mega Coffee, Ediya, Paik Coffee, Twosome Place</span>
+        </div>
+        <!-- Coffee chain logos -->
+        <div style="display:flex; gap:clamp(6px,1vw,12px); align-items:center; flex-wrap:wrap; padding: clamp(4px,0.6vh,8px) 0;">
+          <img src="./Seoul-101-assets/coffee-mega.png" alt="Mega Coffee" style="height:clamp(28px,3.5vh,48px); width:auto; object-fit:contain; border-radius:6px;">
+          <img src="./Seoul-101-assets/coffee-ediya.jpeg" alt="Ediya Coffee" style="height:clamp(28px,3.5vh,48px); width:auto; object-fit:contain; border-radius:6px;">
+          <img src="./Seoul-101-assets/coffee-paik.jpeg" alt="Paik Coffee" style="height:clamp(28px,3.5vh,48px); width:auto; object-fit:contain; border-radius:6px;">
+          <img src="./Seoul-101-assets/coffee-twosome.jpeg" alt="A Twosome Place" style="height:clamp(28px,3.5vh,48px); width:auto; object-fit:contain; border-radius:6px;">
+        </div>
+        <div style="background: var(--orange-mid); border-radius: 8px; padding: clamp(6px,0.8vh,10px) clamp(8px,1vw,12px); font-size: clamp(10px,1vw,13px); font-weight:700; color: var(--orange-deep);">
+          💡 TIP: Skip Starbucks (Expensive) → Try local chains!
+        </div>
+        <div class="info-item">
+          <span class="info-label">🥪 Breakfast:</span>
+          <span>Isaac Toast or Egg Drop</span>
+        </div>
+      </div>
+    </div>
+    <div class="s2-col">
+      <div class="col-header">How to Order at a Kiosk</div>
+      <ol class="step-list">
+        <li class="step-item"><span class="step-num">1</span><span>Switch Language <strong>(Top Right)</strong></span></li>
+        <li class="step-item"><span class="step-num">2</span><span>Navigate Categories — Red labels = Recommended</span></li>
+        <li class="step-item"><span class="step-num">3</span><span>Customize — Suggest <strong>30% Sugar</strong></span></li>
+        <li class="step-item"><span class="step-num">4</span><span>Checkout — <strong>'To Go'</strong> = you cannot stay inside</span></li>
+        <li class="step-item"><span class="step-num">5</span><span>Cleanup — Return tray to station</span></li>
+      </ol>
+    </div>
+  </div>
+  <div class="phrases-bar reveal">
+    <div style="font-size: clamp(10px,1vw,12px); font-weight:800; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.06em; white-space:nowrap;">Key Phrases:</div>
+    <div class="phrase-item">
+      <span class="phrase-en">Iced Americano, please</span>
+      <span class="phrase-kr">아이스 아메리카노 한잔 주세요</span>
+    </div>
+    <div class="phrase-item">
+      <span class="phrase-en">To go</span>
+      <span class="phrase-kr">포장 해 주세요 · Po-jang hae ju-se-yo</span>
+    </div>
+    <div class="phrase-item">
+      <span class="phrase-en">Eat here</span>
+      <span class="phrase-kr">여기서 먹어요 · Yeo-gi-seo meok-eo-yo</span>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: COMMUTE -->
+<section class="slide" id="slide-3" data-index="2">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">Master the Commute: Subway & Bus 🚇</h2>
+  </div>
+  <div class="s3-app-banner reveal">
+    <span>📱 Apps:</span>
+    <img src="./Seoul-101-assets/naver-map.png" alt="Naver Map" style="height:clamp(22px,2.8vh,36px); width:auto; border-radius:6px; flex-shrink:0;">
+    <span style="color:var(--orange)">Naver Map</span>
+    <span style="color:rgba(255,255,255,0.4)">+</span>
+    <img src="./Seoul-101-assets/kakao-map.png" alt="Kakao Map" style="height:clamp(22px,2.8vh,36px); width:auto; border-radius:6px; flex-shrink:0;">
+    <span style="color:var(--orange)">Kakao Map</span>
+    <span style="font-size: clamp(10px,1vw,13px); font-weight:600; color:rgba(255,255,255,0.65);">— Use for elevator exits & exact door numbers</span>
+  </div>
+  <div class="s3-grid reveal">
+    <div class="s3-card">
+      <div class="s3-card-icon">🚇</div>
+      <div class="s3-card-title">Subway</div>
+      <ul class="s3-card-items">
+        <li>Check Direction — Entrances are often separate</li>
+        <li>Get Refunds via Deposit machine for single-trip cards</li>
+        <li>Check T-money balance at machines</li>
+      </ul>
+    </div>
+    <div class="s3-card">
+      <div class="s3-card-icon">🚌</div>
+      <div class="s3-card-title">Bus</div>
+      <ul class="s3-card-items">
+        <li>No Food or Drink onboard</li>
+        <li>Press Stop button BEFORE your station</li>
+        <li>Check the route number carefully</li>
+      </ul>
+    </div>
+    <div class="s3-card">
+      <div class="s3-card-icon">🤫</div>
+      <div class="s3-card-title">Etiquette</div>
+      <ul class="s3-card-items">
+        <li>Silence is golden — keep voice low</li>
+        <li>Respect 🩷 Pink (Pregnant) seats</li>
+        <li>Respect 💛 Yellow (Elderly) seats</li>
+      </ul>
+    </div>
+  </div>
+  <div class="s3-footer reveal">
+    <div class="s3-footer-card">
+      <div class="s3-footer-title">🕵️ Lost?</div>
+      <div class="s3-footer-text">Look for someone in ALL BLACK. Statistically, that's a local.</div>
+    </div>
+    <div class="s3-footer-card">
+      <div class="s3-footer-title">🔧 Troubleshooting</div>
+      <div class="s3-footer-text">Check T-money balance at ticket machines or convenience stores.</div>
+    </div>
+    <div class="s3-footer-card">
+      <div class="s3-footer-title">⛴️ Bonus</div>
+      <div class="s3-footer-text">Hangang "Bus" Ferry — 3,000 KRW scenic river crossing!</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: EXPLORE PT 1 -->
+<section class="slide" id="slide-4" data-index="3">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">Explore Like a Local: Shop, Sip, Snap & Savor (Pt. 1) 🗺️</h2>
+    <span class="slide-header-badge">Districts</span>
+  </div>
+  <!-- District reference photo strip -->
+  <div class="reveal" style="border-radius:var(--radius); overflow:hidden; max-height:clamp(60px,9vh,100px); flex-shrink:0;">
+    <img src="./Seoul-101-assets/slide-04.png" alt="Districts Part 1 overview" style="width:100%; height:100%; object-fit:cover; object-position:center 20%; display:block;">
+  </div>
+  <div class="s4-grid reveal">
+    <div class="district-card dc-myeong">
+      <div class="district-name-kr">명동</div>
+      <div class="district-name-en">Myeongdong</div>
+      <div class="district-vibe">Brand Mecca</div>
+      <ul class="district-items">
+        <li>🛍 <span><strong>Shop:</strong> ALAND, Duty-Free Malls</span></li>
+        <li>📸 <span><strong>Snap:</strong> Secret spot for Namsan Tower view</span></li>
+        <li>💡 Great for cosmetics & global brands</li>
+      </ul>
+      <div class="district-skip">🚫 Skip street food here — Tourist Trap</div>
+    </div>
+    <div class="district-card dc-seongsu">
+      <div class="district-name-kr">성수동</div>
+      <div class="district-name-en">Seongsu-dong</div>
+      <div class="district-vibe">Brooklyn of Seoul</div>
+      <ul class="district-items">
+        <li>🛍 <span><strong>Shop:</strong> NyuNyu, Matin Kim, Gentle Monster</span></li>
+        <li>☕ <span><strong>Sip:</strong> K-style aesthetic cafes</span></li>
+        <li>🌿 <span><strong>Play:</strong> Seoul Forest & 'Life Four Cuts' photo booths</span></li>
+      </ul>
+    </div>
+    <div class="district-card dc-hongdae">
+      <div class="district-name-kr">홍대</div>
+      <div class="district-name-en">Hongdae</div>
+      <div class="district-vibe">Youth Pulse</div>
+      <ul class="district-items">
+        <li>🛍 <span><strong>Shop:</strong> Musinsa, Kakao Friends, DIY Stationery</span></li>
+        <li>🍖 <span><strong>Savor:</strong> Minari Samgyeopsal (Water Parsley Pork Belly)</span></li>
+        <li>🎵 <span><strong>Play:</strong> Busking, Flip-book booths, Caricatures</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: EXPLORE PT 2 -->
+<section class="slide" id="slide-5" data-index="4">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">Explore Like a Local: Tradition & Glamour (Pt. 2) 🏯</h2>
+    <span class="slide-header-badge">Districts</span>
+  </div>
+  <div class="reveal" style="border-radius:var(--radius); overflow:hidden; max-height:clamp(60px,9vh,100px); flex-shrink:0;">
+    <img src="./Seoul-101-assets/slide-05.png" alt="Anguk and Gangnam districts" style="width:100%; height:100%; object-fit:cover; object-position:center 25%; display:block;">
+  </div>
+  <div class="s5-grid reveal">
+    <div class="s5-card">
+      <div class="s5-district-top">
+        <div class="s5-name-en">Anguk</div>
+        <div class="s5-name-kr">안국 · Soul of Tradition</div>
+      </div>
+      <ul class="s5-items">
+        <li>☕ <span><strong>Sip:</strong> Hanok cafes, Osulloc (Jeju Green Tea)</span></li>
+        <li>🍲 <span><strong>Savor:</strong> Ginseng Chicken Soup, Thin-skin Mandu</span></li>
+        <li>📸 <span><strong>Snap:</strong> Rent a Hanbok at Bukchon Hanok Village</span></li>
+        <li>🏯 <span>Walk through traditional alleyways & courtyards</span></li>
+      </ul>
+    </div>
+    <div class="s5-card">
+      <div class="s5-district-top">
+        <div class="s5-name-en">Gangnam & Sinsa</div>
+        <div class="s5-name-kr">강남 & 신사 · Glamour District</div>
+      </div>
+      <ul class="s5-items">
+        <li>🛍 <span><strong>Shop:</strong> Garosu-gil (Flagships & Luxury brands)</span></li>
+        <li>🦀 <span><strong>Savor:</strong> Ganjang Gejang (Soy-marinated Crab)</span></li>
+        <li>📸 <span><strong>Snap:</strong> High-Angle 'Bird's Eye' photo booths</span></li>
+        <li>✨ <span><strong>Glow-up:</strong> VewVew platform for K-beauty clinics</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="s5-perk reveal">
+    <span style="font-size: clamp(20px,2.2vw,28px);">🎁</span>
+    <span>A curated Naver Map list with all locations will be shared in the <strong>KakaoTalk chatroom</strong></span>
+  </div>
+</section>
+
+<!-- SLIDE 6: TASTE -->
+<section class="slide" id="slide-6" data-index="5">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">A Taste of Seoul: Lunch, Snacks & Sweets 🍜</h2>
+  </div>
+  <div class="s6-grid reveal">
+    <div class="s6-col s6-col-1">
+      <div class="s6-col-icon">🥡</div>
+      <div class="s6-col-sub">Budget</div>
+      <div class="s6-col-title">Budget Chains 분식</div>
+      <ul class="s6-items">
+        <li>Kimbap Cheonguk</li>
+        <li>Yeoptteok (Spicy Rice Cake)</li>
+        <li>Tukki (Buffet) — great value!</li>
+      </ul>
+    </div>
+    <div class="s6-col s6-col-2">
+      <div class="s6-col-icon">🍜</div>
+      <div class="s6-col-sub">Must Try</div>
+      <div class="s6-col-title">Korean Must-Eats</div>
+      <ul class="s6-items">
+        <li>Jjajangmyeon + Tangsuyuk (Chinese-Fusion)</li>
+        <li>Naengmyeon (Cold noodles)</li>
+        <li>Kimchi Jjigae (Stew)</li>
+      </ul>
+    </div>
+    <div class="s6-col s6-col-3">
+      <div class="s6-col-icon">🏪</div>
+      <div class="s6-col-sub">⚠️ Cash Only!</div>
+      <div class="s6-col-title">Market Guide</div>
+      <ul class="s6-items" style="margin-top: 2px;">
+        <li style="display:block;"><div class="s6-warning">🚫 Skip: Gwangjang Market (Pricey)</div></li>
+        <li style="display:block; margin-top:4px;"><div class="s6-ok">✅ Mangwon (Trendy)</div></li>
+        <li style="display:block; margin-top:4px;"><div class="s6-ok">✅ Namdaemun (Veggie Hotteok)</div></li>
+        <li style="display:block; margin-top:4px;"><div class="s6-ok">✅ Noryangjin Fish Market</div></li>
+      </ul>
+    </div>
+    <div class="s6-col s6-col-4">
+      <div class="s6-col-icon">🍩</div>
+      <div class="s6-col-sub">Trending</div>
+      <div class="s6-col-title">Dessert Trends</div>
+      <img src="./Seoul-101-assets/food-dessert.png" alt="Dubai Chewy Cookie" style="width:100%; max-height:clamp(50px,8vh,90px); object-fit:cover; border-radius:8px; margin: clamp(2px,0.4vh,6px) 0;">
+      <ul class="s6-items">
+        <li>Salt Bread (Ja-yeon-do)</li>
+        <li>Kkwabaegi (Twisted Donut)</li>
+        <li>Yakgwa (Honey Cookie)</li>
+        <li>Dubai Chewy Cookie</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: RESTROOM (DARK) -->
+<section class="slide" id="slide-7" data-index="6">
+  <div class="s7-title reveal">🚻 Restroom Hack</div>
+  <div class="s7-grid reveal">
+    <div class="s7-card">
+      <div class="s7-card-icon">📍</div>
+      <div class="s7-card-label">WHERE</div>
+      <div class="s7-card-text">Subway stations are safest</div>
+      <div class="s7-card-sub">Free, clean, and widely available throughout the city</div>
+    </div>
+    <div class="s7-card">
+      <div class="s7-card-icon">📱</div>
+      <div class="s7-card-label">ACTION</div>
+      <div class="s7-card-text">Search in Naver Map:</div>
+      <div class="s7-kr">공용화장실</div>
+      <div class="s7-card-sub">Gong-yong hwa-jang-sil<br>(Public restroom)</div>
+    </div>
+    <div class="s7-card">
+      <div class="s7-card-icon">☕</div>
+      <div class="s7-card-label">CAFE TIP</div>
+      <div class="s7-card-text">Bathroom code is on the receipt</div>
+      <div class="s7-card-sub">Order a drink → check receipt → access code</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8: SHOPPING L1 -->
+<section class="slide" id="slide-8" data-index="7">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">Shopping Strategy Level 1 — The Beginner 🛍️</h2>
+    <span class="slide-header-badge">Duty-Free @ Lotte Myeongdong</span>
+  </div>
+  <div class="s8-layout reveal">
+    <div style="border-radius:var(--radius); overflow:hidden; position:relative; min-height:0;">
+      <img src="./Seoul-101-assets/lotte-store.jpeg" alt="Lotte Department Store Myeongdong" style="width:100%; height:100%; object-fit:cover; display:block;">
+      <div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent, rgba(0,0,0,0.75)); padding: clamp(12px,2vh,20px) clamp(14px,1.5vw,20px);">
+        <div style="font-size:clamp(14px,1.6vw,20px); font-weight:900; color:#fff; line-height:1.2;">Lotte Department Store<br>Myeongdong</div>
+        <div style="font-size:clamp(10px,1vw,13px); font-weight:600; color:rgba(255,255,255,0.7); margin-top:3px;">롯데 백화점 · 명동</div>
+      </div>
+    </div>
+    <div class="s8-right">
+      <div style="font-size: clamp(11px,1.1vw,14px); font-weight:800; color: var(--orange-deep); text-transform:uppercase; letter-spacing:0.05em;">Strategy Stack</div>
+      <div class="s8-stack">
+        <div class="s8-strategy">
+          <div class="s8-strat-level">9F Hack</div>
+          <div class="s8-strat-title">Membership Card First</div>
+          <div class="s8-strat-text">Get the card on 9F → Unlocks Gold Card discounts on purchases across the store</div>
+        </div>
+        <div class="s8-strategy">
+          <div class="s8-strat-level">11F Strategy</div>
+          <div class="s8-strat-title">Voucher Desk → Passport</div>
+          <div class="s8-strat-text">Show your passport at the Voucher Desk → up to 100,000 KRW in savings</div>
+        </div>
+        <div class="s8-strategy" style="border-left-color: var(--purple);">
+          <div class="s8-strat-level" style="color:var(--purple);">App Tip</div>
+          <div class="s8-strat-title">Olive Young App</div>
+          <div class="s8-strat-text">Use for 'Duty-Free Pickup' at the airport — shop now, collect on departure</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9: SHOPPING L2&3 -->
+<section class="slide" id="slide-9" data-index="8">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">Shopping Strategy: Levels 2 & 3 👗</h2>
+  </div>
+  <div class="s9-grid reveal">
+    <div class="s9-level s9-l2">
+      <div class="s9-level-badge">Level 2 — Intermediate</div>
+      <div class="s9-level-title">Trendy & Budget Shopping</div>
+      <div style="border-radius:8px; overflow:hidden; max-height:clamp(70px,10vh,120px); flex-shrink:0;">
+        <img src="./Seoul-101-assets/musinsa-store.jpeg" alt="MUSINSA Megastore" style="width:100%; height:100%; object-fit:cover; display:block;">
+      </div>
+      <ul class="s9-items">
+        <li>🏙️ <span><strong>Vibe:</strong> Clean, modern fashion</span></li>
+        <li>🗺️ <span><strong>Hubs:</strong> Seongsu, Hannam, The Hyundai Seoul (B2 Pop-ups)</span></li>
+        <li>💸 <span><strong>Budget:</strong> GOTO Mall, University Districts (Ewha / Hongdae)</span></li>
+        <li>🛒 <span><strong>The Big Four:</strong> MUSINSA, SPAO, 8seconds, MUSINSA Standard</span></li>
+      </ul>
+      <div style="display:flex; gap:clamp(4px,0.8vw,10px); align-items:center;">
+        <img src="./Seoul-101-assets/logo-spao.png" alt="SPAO" style="height:clamp(20px,2.5vh,34px); width:auto; object-fit:contain; border-radius:4px;">
+      </div>
+    </div>
+    <div class="s9-level s9-l3">
+      <div class="s9-level-badge">Level 3 — Expert</div>
+      <div class="s9-level-title">Vintage Hunter 🕵️</div>
+      <ul class="s9-items">
+        <li>📍 <span><strong>Location:</strong> Dongmyo Flea Market 동묘</span></li>
+        <li>✨ <span><strong>Vibe:</strong> G-Dragon style. Weekends are best.</span></li>
+        <li>🍞 <span><strong>Must-Eat:</strong> 1,000 KRW Toast at the market</span></li>
+        <li>🏪 <span><strong>Pro Tip:</strong> Look for 'Vintage Curated Shops' in the alleys</span></li>
+        <li>👁️ <span>Train your eye — authentic gems hidden among the racks</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10: SHOPPING TOOLKIT -->
+<section class="slide" id="slide-10" data-index="9">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">Shopping Toolkit: Phrases & Olive Young Guide 💬</h2>
+  </div>
+  <div class="s10-grid reveal">
+    <div class="s10-col">
+      <div class="s10-col-header">🗣️ Useful Shopping Phrases</div>
+      <div class="phrase-row">
+        <div class="phrase-en">"Do you have this?"</div>
+        <div class="phrase-kr">혹시 이것 있어요?</div>
+        <div class="phrase-rom">Hok-si i-geot it-seo-yo?</div>
+      </div>
+      <div class="phrase-row">
+        <div class="phrase-en">"Any other colors?"</div>
+        <div class="phrase-kr">혹시 다른 색도 있어요?</div>
+        <div class="phrase-rom">Hok-si da-reun saek-do it-seo-yo?</div>
+      </div>
+      <div class="phrase-row">
+        <div class="phrase-en">"Discount please" 😊</div>
+        <div class="phrase-kr">좀 깎아 주세요</div>
+        <div class="phrase-rom">Jom kkak-ka ju-se-yo</div>
+      </div>
+    </div>
+    <div class="s10-col">
+      <div class="s10-col-header">💊 Olive Young Survival Guide</div>
+      <div class="oy-item">
+        <div class="oy-label">Strategy</div>
+        <div class="oy-text">Go to any branch near your hotel. Don't stress about finding THE one.</div>
+      </div>
+      <div class="oy-item">
+        <div class="oy-label">Display Rule</div>
+        <div class="oy-text">Shelf items are SAMPLES. Ask staff to bring the actual product from storage.</div>
+      </div>
+      <div class="phrase-row">
+        <div class="phrase-en">"Excuse me"</div>
+        <div class="phrase-kr">저기요</div>
+        <div class="phrase-rom">Jeo-gi-yo</div>
+      </div>
+      <div class="phrase-row">
+        <div class="phrase-en">"Need a bag?"</div>
+        <div class="phrase-kr">봉투 필요하나요?</div>
+        <div class="phrase-rom">Bong-tu pil-yo-ha-na-yo?</div>
+      </div>
+      <div class="phrase-row">
+        <div class="phrase-en">"Tax Free?"</div>
+        <div class="phrase-kr">택스프리 가능해요?</div>
+        <div class="phrase-rom">Tax free ga-neung-hae-yo?</div>
+      </div>
+      <div style="background: var(--purple-light); border-radius: 8px; padding: clamp(6px,0.8vh,10px) clamp(8px,1vw,12px); font-size: clamp(10px,1vw,13px); font-weight:700; color: var(--purple);">
+        ✨ Book beauty services via <strong>VewVew app</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 11: GLOW UP (DARK) -->
+<section class="slide" id="slide-11" data-index="10">
+  <div class="s11-eyebrow reveal">Beauty & Care in Seoul</div>
+  <div class="s11-hero-title reveal">THE GLOW UP ✨</div>
+  <div class="s11-rule reveal">
+    <div class="s11-rule-label">🔑 The Golden Rule</div>
+    <div class="s11-rule-text">Appointments are Mandatory.<br>Walk-ins are rare — always book ahead.</div>
+  </div>
+  <div class="s11-vewvew reveal">
+    <img src="./Seoul-101-assets/vewvew-icon.png" alt="VewVew" style="height:clamp(36px,5vh,60px); width:auto; border-radius:10px; flex-shrink:0;">
+    <img src="./Seoul-101-assets/vewvew-logo.png" alt="VewVew" style="height:clamp(24px,3vh,38px); width:auto; object-fit:contain; flex-shrink:0;">
+    <div class="s11-vewvew-text">
+      <strong style="color:#fff;">Use the VewVew app for English booking</strong><br>
+      Hair styling · Skin clinics · Facial treatments · K-beauty consultations
+    </div>
+  </div>
+  <div class="s11-services reveal">
+    <div class="s11-service-pill">💇 Hair Salon</div>
+    <div class="s11-service-pill">💅 Nail Art</div>
+    <div class="s11-service-pill">✨ Skin Clinic</div>
+    <div class="s11-service-pill">🧖 Facial</div>
+    <div class="s11-service-pill">💆 Scalp Care</div>
+    <div class="s11-service-pill">👁️ Lash Lift</div>
+    <div class="s11-service-pill">🦷 Teeth Whitening</div>
+    <div class="s11-service-pill">🎨 Hair Coloring</div>
+  </div>
+</section>
+
+<!-- SLIDE 12: TAXI -->
+<section class="slide" id="slide-12" data-index="11">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">Getting Around: Taxi Guide 🚕</h2>
+  </div>
+  <div class="s12-grid reveal">
+    <div class="s12-card">
+      <div class="s12-card-icon">🗺️</div>
+      <div class="s12-card-title">Navigation</div>
+      <ul class="s12-items">
+        <li>Show <strong>Naver Map</strong> to the driver — point to destination</li>
+        <li>Write destination in <strong>BIG FONTS</strong> on your phone screen</li>
+        <li>Screenshot the Naver Map route just in case</li>
+      </ul>
+    </div>
+    <div class="s12-card">
+      <div class="s12-card-icon">🚦</div>
+      <div class="s12-card-title">Light Indicators</div>
+      <ul class="s12-items">
+        <li>
+          <div class="light-row light-green">🟢 GREEN = Vacant — Get in!</div>
+        </li>
+        <li>
+          <div class="light-row light-red">🔴 RED = Occupied — Move on</div>
+        </li>
+        <li style="margin-top: 4px; font-size: clamp(10px,1vw,13px); font-weight:600; color: var(--text-light);">Kakao T app also lets you book taxis in English</li>
+      </ul>
+    </div>
+    <div class="s12-card">
+      <div class="s12-card-icon">💬</div>
+      <div class="s12-card-title">Key Phrases</div>
+      <ul class="s12-items">
+        <li><strong>[Location] ga-ju-se-yo</strong> — "Please go to [location]"</li>
+        <li><strong>El-ma-na geol-ryeo-yo?</strong> — "How long will it take?"</li>
+        <li><strong>Yeo-gi-se-wo ju-se-yo</strong> — "Stop here please"</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 13: KOREAN BBQ -->
+<section class="slide" id="slide-13" data-index="12">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">Dinner Time: Korean BBQ 🥩 (The Holy Grail)</h2>
+  </div>
+  <div class="s13-golden reveal">
+    🔥 Golden Rule: Order at least 2 portions if dining alone — minimum portions apply at most restaurants
+  </div>
+  <div class="s13-grid reveal">
+    <div class="s13-col" style="position:relative; overflow:hidden;">
+      <div style="border-radius:8px; overflow:hidden; max-height:clamp(70px,10vh,120px); flex-shrink:0; margin-bottom:clamp(4px,0.6vh,8px);">
+        <img src="./Seoul-101-assets/slide-13.png" alt="Korean BBQ" style="width:100%; height:100%; object-fit:cover; object-position:center 30%; display:block;">
+      </div>
+      <div class="s13-col-title">🥩 Menu Decoder</div>
+      <div class="menu-row">
+        <div class="menu-en">Pork Belly</div>
+        <div class="menu-kr">삼겹살 · Sam-gyeop-sal</div>
+      </div>
+      <div class="menu-row">
+        <div class="menu-en">Pork Ribs</div>
+        <div class="menu-kr">돼지갈비 · Dwae-ji-gal-bi</div>
+      </div>
+      <div class="menu-row">
+        <div class="menu-en">Beef Brisket</div>
+        <div class="menu-kr">차돌박이 · Cha-dol-bak-i</div>
+      </div>
+      <div class="formula-box">
+        Ordering Formula:<br>
+        <span>(Food Name)</span> + <span>(Quantity)</span> + <span>주세요 (Ju-se-yo)</span>
+      </div>
+    </div>
+    <div class="s13-col">
+      <div class="s13-col-title">🗣️ Key Phrases</div>
+      <div class="bbq-phrase">
+        <div class="bbq-phrase-en">Menu please</div>
+        <div class="bbq-phrase-kr">메뉴 주세요<br><span style="font-size:clamp(9px,0.9vw,11px); color:var(--text-light);">Me-nyu ju-se-yo</span></div>
+      </div>
+      <div class="bbq-phrase">
+        <div class="bbq-phrase-en">2 portions please</div>
+        <div class="bbq-phrase-kr">2인분 주세요<br><span style="font-size:clamp(9px,0.9vw,11px); color:var(--text-light);">I-in-bun ju-se-yo</span></div>
+      </div>
+      <div class="bbq-phrase">
+        <div class="bbq-phrase-en">One bottle of Soju</div>
+        <div class="bbq-phrase-kr">소주 한병 주세요<br><span style="font-size:clamp(9px,0.9vw,11px); color:var(--text-light);">So-ju han-byeong ju-se-yo</span></div>
+      </div>
+      <div class="bbq-phrase">
+        <div class="bbq-phrase-en">One bottle of Beer</div>
+        <div class="bbq-phrase-kr">맥주 한병 주세요<br><span style="font-size:clamp(9px,0.9vw,11px); color:var(--text-light);">Maek-ju han-byeong ju-se-yo</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 14: AFTER DARK (DARK) -->
+<section class="slide" id="slide-14" data-index="13">
+  <div class="slide-header reveal">
+    <h2 class="slide-title-dark">Seoul After Dark: Nightlife & Street Food 🌙</h2>
+  </div>
+  <!-- Nightlife atmosphere banner from original PPT -->
+  <div class="reveal" style="border-radius:var(--radius); overflow:hidden; max-height:clamp(55px,8vh,90px); flex-shrink:0;">
+    <img src="./Seoul-101-assets/slide-14.png" alt="Seoul After Dark" style="width:100%; height:100%; object-fit:cover; object-position:center 60%; display:block;">
+  </div>
+  <div class="s14-grid reveal">
+    <div class="s14-col">
+      <div class="s14-col-icon">🎭</div>
+      <div class="s14-col-title">Musicals</div>
+      <ul class="s14-items">
+        <li>✨ <span>World-class quality productions in Seoul</span></li>
+        <li>👓 <span><strong>"Subtitle Glasses"</strong> available for English speakers</span></li>
+        <li>🎪 <span><strong>Recommendation:</strong> Sleep No More</span></li>
+        <li>🎟️ <span>Book online in advance for best seats & prices</span></li>
+      </ul>
+    </div>
+    <div class="s14-col">
+      <div class="s14-col-icon">🍢</div>
+      <div class="s14-col-title">Street Food Po-cha 포차</div>
+      <ul class="s14-items">
+        <li>🍡 <span>Tteokbokki 떡볶이 — Spicy rice cakes</span></li>
+        <li>🐟 <span>Odeng 오뎅 — Fish cake skewers</span></li>
+        <li>🍤 <span>Twigim 튀김 — Fried tempura bites</span></li>
+        <li>📍 <span><strong>Find them:</strong> Near universities & popular nightlife areas</span></li>
+        <li>👆 <span>Phrase: Point and say <strong>"일인분 (Il-in-bun)"</strong> = 1 portion</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="s14-footer reveal">
+    THE CITY THAT NEVER SLEEPS &nbsp;·&nbsp; 서울은 잠들지 않는다
+  </div>
+</section>
+
+<!-- SLIDE 15: CVS LIFE -->
+<section class="slide" id="slide-15" data-index="14">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">The CVS Life & Hangang Parks 🏪</h2>
+  </div>
+  <div class="s15-grid reveal">
+    <div class="s15-col">
+      <div class="s15-col-icon">🏪</div>
+      <div class="s15-col-title">GS25 / CU Hacks</div>
+      <ul class="s15-items">
+        <li>🔥 <span>Look for <strong>1+1 / 2+1</strong> Deals — always on rotation</span></li>
+        <li>🧊 <span><strong>Ice Cup Strategy:</strong> Buy Pouch Drink + Frozen Ice Cup → Best value iced coffee ever</span></li>
+        <li>🍜 <span>Try CVS ramens — huge variety of instant noodles</span></li>
+        <li>🥪 <span>Sandwiches, kimbap & snacks are surprisingly great</span></li>
+      </ul>
+    </div>
+    <div class="s15-col">
+      <div class="s15-col-icon">🍜</div>
+      <div class="s15-col-title">Hangang Ramen</div>
+      <div style="border-radius:8px; overflow:hidden; max-height:clamp(55px,8vh,100px); flex-shrink:0;">
+        <img src="./Seoul-101-assets/hangang-ramen.jpeg" alt="Hangang Ramen Boiling Machine" style="width:100%; height:100%; object-fit:cover; display:block;">
+      </div>
+      <div class="s15-step"><div class="s15-step-num">1</div>Rent a mat from the park</div>
+      <div class="s15-step"><div class="s15-step-num">2</div>Buy Ramen at CVS</div>
+      <div class="s15-step"><div class="s15-step-num">3</div>Use Boiling Water Machine</div>
+      <div class="s15-step"><div class="s15-step-num">4</div>Enjoy by the river!</div>
+      <div style="font-size:clamp(9px,0.9vw,11px); font-weight:700; color:var(--text-light); margin-top:4px;">📍 Spots: Yeouido · Banpo · Nodeul Island</div>
+    </div>
+    <div class="s15-col">
+      <div class="s15-col-icon">💬</div>
+      <div class="s15-col-title">CVS Phrases</div>
+      <ul class="s15-items">
+        <li style="flex-direction:column; align-items:flex-start; gap:1px;">
+          <span style="font-weight:800; color: var(--text-dark);">Check out</span>
+          <span style="color:var(--orange-deep);">계산해 주세요</span>
+          <span style="font-size:clamp(9px,0.9vw,11px);">Gye-san-hae ju-se-yo</span>
+        </li>
+        <li style="flex-direction:column; align-items:flex-start; gap:1px; margin-top:4px;">
+          <span style="font-weight:800; color: var(--text-dark);">Straw / Chopsticks</span>
+          <span style="color:var(--orange-deep);">빨대 / 젓가락</span>
+          <span style="font-size:clamp(9px,0.9vw,11px);">Ppal-dae / Jeot-ga-rak</span>
+        </li>
+        <li style="flex-direction:column; align-items:flex-start; gap:1px; margin-top:4px;">
+          <span style="font-weight:800; color: var(--text-dark);">Bag please</span>
+          <span style="color:var(--orange-deep);">봉투 하나 주세요</span>
+          <span style="font-size:clamp(9px,0.9vw,11px);">Bong-tu ha-na ju-se-yo</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 16: RECOVERY & WARNINGS -->
+<section class="slide" id="slide-16" data-index="15">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">Recovery & Important Warnings ⚠️</h2>
+  </div>
+  <div class="s16-top reveal">
+    <div class="s16-option">
+      <div class="s16-option-badge">Option A 🚴</div>
+      <div class="s16-option-title">Hangang Biker</div>
+      <div class="s16-option-text">Rent a bike at the river and cycle along the Hangang paths. Peaceful, scenic, and great exercise after a big meal.</div>
+    </div>
+    <div class="s16-option">
+      <div class="s16-option-badge" style="background:var(--orange-mid); color:var(--orange-deep);">Option B 🛁</div>
+      <div class="s16-option-title">Jjimjilbang 찜질방</div>
+      <div class="s16-option-text">Korean spa sauna. Wear the <strong>Sheep Head Towel (Yang-meo-ri)</strong>. Try Sikhye + Smoked Eggs. <strong>Bring a charging cable!</strong></div>
+    </div>
+  </div>
+  <div class="warnings-header reveal">⚠️ Important Warnings</div>
+  <div class="s16-warnings reveal">
+    <div class="s16-warn-card">
+      <div class="s16-warn-icon">🚨</div>
+      <div class="s16-warn-title">Cults</div>
+      <div class="s16-warn-text">Ignore overly friendly strangers asking about "culture" or "spirit" — it's a recruitment tactic.</div>
+    </div>
+    <div class="s16-warn-card">
+      <div class="s16-warn-icon">🚭</div>
+      <div class="s16-warn-title">Rules</div>
+      <div class="s16-warn-text">No smoking while walking. No drunk cycling. Many shops close 8PM.</div>
+    </div>
+    <div class="s16-warn-card">
+      <div class="s16-warn-icon">📷</div>
+      <div class="s16-warn-title">Privacy</div>
+      <div class="s16-warn-text">Blur strangers' faces in photos before sharing publicly.</div>
+    </div>
+    <div class="s16-warn-card">
+      <div class="s16-warn-icon">📱</div>
+      <div class="s16-warn-title">Alerts</div>
+      <div class="s16-warn-text">Emergency text alarm sounds are usually just weather or safety updates. Don't panic.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 17: MISSIONS -->
+<section class="slide" id="slide-17" data-index="16">
+  <div class="slide-header reveal">
+    <h2 class="slide-title">Your Missions: Challenge Accepted 🎯</h2>
+  </div>
+  <div class="s17-grid reveal">
+    <div class="s17-mission">
+      <div class="s17-mission-num">🛒 Mission 1</div>
+      <div class="s17-mission-time">⏱ 30 min</div>
+      <div class="s17-mission-title">Olive Young / Daiso</div>
+      <div class="s17-mission-text">Buy 1 item using the self-checkout kiosk. Navigate the Korean interface and complete the transaction independently.</div>
+    </div>
+    <div class="s17-mission">
+      <div class="s17-mission-num">🏪 Mission 2</div>
+      <div class="s17-mission-time">⏱ 30 min</div>
+      <div class="s17-mission-title">Convenience Store Lunch</div>
+      <div class="s17-mission-text">Try a CVS recipe (e.g., Mark Jungsik style) & share your creation in the group chat.</div>
+    </div>
+    <div class="s17-mission">
+      <div class="s17-mission-num">🛕 Mission 3</div>
+      <div class="s17-mission-time">⏱ 1 hour</div>
+      <div class="s17-mission-title">Bongeunsa Temple</div>
+      <div class="s17-mission-text">Find the Buddha Statue from the reference photo & take a matching shot. Navigate there using Naver Map.</div>
+    </div>
+    <div class="s17-mission" style="border-color: var(--purple-light); background: var(--purple-light);">
+      <div class="s17-mission-num" style="color:var(--purple);">☕ Mission 4</div>
+      <div class="s17-mission-time" style="background:var(--purple-light); color:var(--purple);">Debrief</div>
+      <div class="s17-mission-title">Cafe Meet-Up</div>
+      <div class="s17-mission-text">Meet at the coffee chain near Bongeunsa. Share your photos, stories, and purchases!</div>
+    </div>
+  </div>
+  <div class="s17-debrief reveal">
+    <div class="s17-debrief-label">🗣️ Debrief:</div>
+    <div class="s17-debrief-qs">
+      <div class="s17-debrief-q">What was easy?</div>
+      <div class="s17-debrief-q">What surprised you?</div>
+      <div class="s17-debrief-q">Any difficulties?</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== JAVASCRIPT ===================== -->
+<script>
+(function() {
+  'use strict';
+
+  const TOTAL_SLIDES = 17;
+  const STORAGE_KEY = 'seoul101-v2';
+  let currentSlide = 0;
+  let isNavigating = false;
+
+  // ===== SLIDE REFERENCES =====
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const progressBar = document.getElementById('progress-bar');
+  const navDotsContainer = document.getElementById('nav-dots');
+  const kbHint = document.getElementById('kb-hint');
+
+  // ===== BUILD NAV DOTS =====
+  slides.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot';
+    dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+    dot.addEventListener('click', () => goToSlide(i));
+    navDotsContainer.appendChild(dot);
+  });
+
+  const navDots = Array.from(navDotsContainer.querySelectorAll('.nav-dot'));
+
+  // ===== INTERSECTION OBSERVER =====
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // Slide visibility observer for current tracking
+  const slideObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+        const idx = parseInt(entry.target.dataset.index);
+        if (!isNaN(idx)) updateCurrentSlide(idx);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  slides.forEach(slide => slideObserver.observe(slide));
+
+  function updateCurrentSlide(idx) {
+    currentSlide = idx;
+    updateProgress();
+    updateNavDots();
+  }
+
+  function updateProgress() {
+    const pct = TOTAL_SLIDES > 1 ? (currentSlide / (TOTAL_SLIDES - 1)) * 100 : 0;
+    progressBar.style.width = pct + '%';
+  }
+
+  function updateNavDots() {
+    navDots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === currentSlide);
+    });
+  }
+
+  function goToSlide(idx) {
+    idx = Math.max(0, Math.min(TOTAL_SLIDES - 1, idx));
+    slides[idx].scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ===== KEYBOARD NAVIGATION =====
+  document.addEventListener('keydown', (e) => {
+    if (editMode && document.activeElement && document.activeElement.isContentEditable) {
+      if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        exportHTML();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+      case 'PageDown':
+      case ' ':
+        e.preventDefault();
+        goToSlide(currentSlide + 1);
+        break;
+      case 'ArrowUp':
+      case 'PageUp':
+        e.preventDefault();
+        goToSlide(currentSlide - 1);
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        goToSlide(currentSlide + 1);
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        goToSlide(currentSlide - 1);
+        break;
+      case 'Home':
+        e.preventDefault();
+        goToSlide(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        goToSlide(TOTAL_SLIDES - 1);
+        break;
+      case 'e':
+      case 'E':
+        toggleEditMode();
+        break;
+      case 's':
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          exportHTML();
+        }
+        break;
+    }
+  });
+
+  // ===== WHEEL NAVIGATION =====
+  let wheelCooldown = false;
+  document.addEventListener('wheel', (e) => {
+    if (wheelCooldown) return;
+    if (Math.abs(e.deltaY) < 10) return;
+    wheelCooldown = true;
+    if (e.deltaY > 0) goToSlide(currentSlide + 1);
+    else goToSlide(currentSlide - 1);
+    setTimeout(() => { wheelCooldown = false; }, 700);
+  }, { passive: true });
+
+  // ===== TOUCH NAVIGATION =====
+  let touchStartY = 0;
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    const dy = touchStartY - e.changedTouches[0].clientY;
+    const dx = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 50) {
+      if (dy > 0) goToSlide(currentSlide + 1);
+      else goToSlide(currentSlide - 1);
+    }
+  }, { passive: true });
+
+  // ===== KEYBOARD HINT =====
+  setTimeout(() => kbHint.classList.add('hidden'), 4000);
+
+  // ===== INLINE EDITING =====
+  let editMode = false;
+  const editHotzone = document.getElementById('edit-hotzone');
+  const editToggleBtn = document.getElementById('edit-toggle');
+  let hotzoneTimer = null;
+  let toggleVisible = false;
+
+  editHotzone.addEventListener('mouseenter', () => {
+    clearTimeout(hotzoneTimer);
+    showEditButton();
+  });
+
+  editHotzone.addEventListener('mouseleave', () => {
+    hotzoneTimer = setTimeout(() => {
+      if (!editMode) hideEditButton();
+    }, 400);
+  });
+
+  editToggleBtn.addEventListener('mouseenter', () => {
+    clearTimeout(hotzoneTimer);
+    showEditButton();
+  });
+
+  editToggleBtn.addEventListener('mouseleave', () => {
+    hotzoneTimer = setTimeout(() => {
+      if (!editMode) hideEditButton();
+    }, 400);
+  });
+
+  function showEditButton() {
+    editToggleBtn.classList.add('show');
+    toggleVisible = true;
+  }
+
+  function hideEditButton() {
+    if (!editMode) {
+      editToggleBtn.classList.remove('show');
+      toggleVisible = false;
+    }
+  }
+
+  editToggleBtn.addEventListener('click', toggleEditMode);
+
+  function toggleEditMode() {
+    editMode = !editMode;
+    editToggleBtn.classList.toggle('active', editMode);
+    editToggleBtn.textContent = editMode ? '✓' : '✏️';
+    if (editMode) showEditButton();
+
+    const editableEls = document.querySelectorAll('[data-editable]');
+    editableEls.forEach(el => {
+      el.contentEditable = editMode ? 'true' : 'false';
+    });
+
+    if (!editMode) {
+      saveToStorage();
+      hideEditButton();
+    }
+  }
+
+  function saveToStorage() {
+    try {
+      const content = {};
+      document.querySelectorAll('[data-editable]').forEach((el, i) => {
+        content[i] = el.innerHTML;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(content));
+    } catch(e) {}
+  }
+
+  function loadFromStorage() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      const content = JSON.parse(saved);
+      document.querySelectorAll('[data-editable]').forEach((el, i) => {
+        if (content[i] !== undefined) el.innerHTML = content[i];
+      });
+    } catch(e) {}
+  }
+
+  function exportHTML() {
+    const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Seoul-101-v2-edited.html';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Auto-save on input
+  document.addEventListener('input', (e) => {
+    if (editMode && e.target.isContentEditable) {
+      clearTimeout(window._saveTimer);
+      window._saveTimer = setTimeout(saveToStorage, 800);
+    }
+  });
+
+  // Load saved content
+  loadFromStorage();
+
+  // Initial state
+  updateProgress();
+  updateNavDots();
+
+})();
+</script>
+</body>
+</html>
